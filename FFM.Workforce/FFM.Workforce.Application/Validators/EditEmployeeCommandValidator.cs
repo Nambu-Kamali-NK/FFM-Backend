@@ -35,7 +35,7 @@ namespace FFM.Workforce.Application.Validators
             When(x => !string.IsNullOrWhiteSpace(x.Mobile), () =>
             {
                 RuleFor(x => x.Mobile)
-                    .Matches("^[0-9]{10,15}$").WithMessage("Mobile must contain only digits and be 10‑15 characters long.");
+                    .Matches(@"^\+?[0-9\s\-]{10,20}$").WithMessage("Mobile must contain 10‑15 digits (optional leading +).");
             });
 
             When(x => x.ManagerId.HasValue, () =>
