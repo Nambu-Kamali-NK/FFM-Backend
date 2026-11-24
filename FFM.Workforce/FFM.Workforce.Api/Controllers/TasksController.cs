@@ -60,7 +60,9 @@ public class TasksController : ControllerBase
             "priority" => sortOrder == "desc" ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
             "status" => sortOrder == "desc" ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status),
             "title" => sortOrder == "desc" ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title),
-            "date" or "scheduleddate" => sortOrder == "desc" ? query.OrderByDescending(t => t.ScheduledStart) : query.OrderBy(t => t.ScheduledStart),
+            "date" or "scheduleddate" or "scheduledstart" => sortOrder == "desc" ? query.OrderByDescending(t => t.ScheduledStart) : query.OrderBy(t => t.ScheduledStart),
+            "createdat" => sortOrder == "asc" ? query.OrderBy(t => t.CreatedAt) : query.OrderByDescending(t => t.CreatedAt),
+            "tasknumber" or "task_number" => sortOrder == "desc" ? query.OrderByDescending(t => t.TaskNumber) : query.OrderBy(t => t.TaskNumber),
             _ => sortOrder == "desc" ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id)
         };
 

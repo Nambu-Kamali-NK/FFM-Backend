@@ -88,4 +88,42 @@ public class RostersController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(ApiResponse<RosterAssignmentDto>.Ok(result, "Roster assigned successfully."));
     }
+
+    public record DeleteRosterRequest(int? Id, int? EmployeeId, DateTime? RosterDate);
+
+    /// <summary>
+    /// Removes/deletes a shift assignment from the roster schedule.
+    /// Strictly adheres to Zero Path Parameters standard.
+    /// </summary>
+    [HttpPost("delete")]
+    [Authorize(Roles = "SYSTEM_ADMIN,ADMIN,MANAGER,SUPERVISOR")]
+    public async Task<IActionResult> DeleteRoster(
+        [FromBody] DeleteRosterRequest request,
+        [FromServices] FFM.Workforce.Infrastructure.WorkforceDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        if (request == null)
+            return BadRequest(ApiResponse<object>.Fail("BAD_REQUEST", "Payload required."));
+
+        FFM.Workforce.Domain.Entities.RosterAssignment? assignment = null;
+        if (request.Id.HasValue && request.Id.Value > 0)
+        {
+            assignment = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(
+                dbContext.RosterAssignments, r => r.Id == request.Id.Value, cancellationToken);
+        }
+        else if (request.EmployeeId.HasValue && request.RosterDate.HasValue)
+        {
+            var date = DateTime.SpecifyKind(request.RosterDate.Value.Date, DateTimeKind.Utc);
+            assignment = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(
+                dbContext.RosterAssignments, r => r.EmployeeId == request.EmployeeId.Value && r.RosterDate.Date == date.Date, cancellationToken);
+        }
+
+        if (assignment != null)
+        {
+            dbContext.RosterAssignments.Remove(assignment);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return Ok(ApiResponse<bool>.Ok(true, "Roster shift removed successfully."));
+    }
 }
