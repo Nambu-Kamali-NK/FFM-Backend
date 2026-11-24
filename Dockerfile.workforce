@@ -1,0 +1,30 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ["FFM.Workforce/FFM.Workforce.Api/FFM.Workforce.Api.csproj", "FFM.Workforce/FFM.Workforce.Api/"]
+COPY ["FFM.Workforce/FFM.Workforce.Domain/FFM.Workforce.Domain.csproj", "FFM.Workforce/FFM.Workforce.Domain/"]
+COPY ["FFM.Workforce/FFM.Workforce.Application/FFM.Workforce.Application.csproj", "FFM.Workforce/FFM.Workforce.Application/"]
+COPY ["FFM.Workforce/FFM.Workforce.Infrastructure/FFM.Workforce.Infrastructure.csproj", "FFM.Workforce/FFM.Workforce.Infrastructure/"]
+
+RUN dotnet restore "FFM.Workforce/FFM.Workforce.Api/FFM.Workforce.Api.csproj"
+
+COPY . .
+
+RUN dotnet publish "FFM.Workforce/FFM.Workforce.Api/FFM.Workforce.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN cp "FFM.Workforce/FFM.Workforce.Api/identity-public.key" /app/publish/identity-public.key
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
+
+ENTRYPOINT ["dotnet", "FFM.Workforce.Api.dll"]

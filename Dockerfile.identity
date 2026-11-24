@@ -1,0 +1,28 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ["FFM.Identity.Access.Api/FFM.Identity.Access.Api.csproj", "FFM.Identity.Access.Api/"]
+COPY ["FFM.Identity.Access.Domain/FFM.Identity.Access.Domain.csproj", "FFM.Identity.Access.Domain/"]
+COPY ["FFM.Identity.Access.Infrastructure/FFM.Identity.Access.Infrastructure.csproj", "FFM.Identity.Access.Infrastructure/"]
+
+RUN dotnet restore "FFM.Identity.Access.Api/FFM.Identity.Access.Api.csproj"
+
+COPY . .
+
+RUN dotnet publish "FFM.Identity.Access.Api/FFM.Identity.Access.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
+
+ENTRYPOINT ["dotnet", "FFM.Identity.Access.Api.dll"]

@@ -210,10 +210,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FfmCorsPolicy", policy =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-            ?? new[] { "http://localhost:3000", "http://localhost:5173", "https://localhost:3000" };
-
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(origin =>
+                  string.IsNullOrEmpty(origin) ||
+                  origin.StartsWith("http://localhost") ||
+                  origin.StartsWith("https://localhost") ||
+                  origin.EndsWith(".netlify.app") ||
+                  origin == "https://muscat-municipality-ffm.netlify.app")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
