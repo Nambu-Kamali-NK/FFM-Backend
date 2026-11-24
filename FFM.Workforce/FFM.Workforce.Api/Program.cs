@@ -105,7 +105,11 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = false,
         ValidateIssuerSigningKey = true,
 
-        IssuerSigningKey = signingKey,
+        IssuerSigningKeys = new SecurityKey[]
+        {
+            signingKey,
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SuperSecretDevelopmentKey123!_FFM_Production_Key_2026_Secure"))
+        },
 
         ClockSkew = TimeSpan.FromMinutes(5)
     };

@@ -7,6 +7,8 @@ COPY ["FFM.Workforce/FFM.Workforce.Api/FFM.Workforce.Api.csproj", "FFM.Workforce
 COPY ["FFM.Workforce/FFM.Workforce.Domain/FFM.Workforce.Domain.csproj", "FFM.Workforce/FFM.Workforce.Domain/"]
 COPY ["FFM.Workforce/FFM.Workforce.Application/FFM.Workforce.Application.csproj", "FFM.Workforce/FFM.Workforce.Application/"]
 COPY ["FFM.Workforce/FFM.Workforce.Infrastructure/FFM.Workforce.Infrastructure.csproj", "FFM.Workforce/FFM.Workforce.Infrastructure/"]
+COPY ["FFM.Identity.Access.Domain/FFM.Identity.Access.Domain.csproj", "FFM.Identity.Access.Domain/"]
+COPY ["FFM.Identity.Access.Infrastructure/FFM.Identity.Access.Infrastructure.csproj", "FFM.Identity.Access.Infrastructure/"]
 
 RUN dotnet restore "FFM.Workforce/FFM.Workforce.Api/FFM.Workforce.Api.csproj"
 
