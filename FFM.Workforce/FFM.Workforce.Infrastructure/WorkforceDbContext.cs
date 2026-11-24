@@ -34,6 +34,8 @@ public class WorkforceDbContext : DbContext
     public DbSet<PermissionRequest> PermissionRequests => Set<PermissionRequest>();
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<RosterAssignment> RosterAssignments => Set<RosterAssignment>();
+    public DbSet<FieldTaskEntity> Tasks => Set<FieldTaskEntity>();
+    public DbSet<ClientSiteEntity> ClientSites => Set<ClientSiteEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
