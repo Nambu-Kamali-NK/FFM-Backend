@@ -29,10 +29,10 @@ public class ClientSiteEntity
 {
     public int Id { get; set; }
     public string SiteCode { get; set; } = string.Empty;
-    public string SiteName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public string? Address { get; set; }
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
-    public double GeofenceRadiusMeters { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+    public int? RadiusMeters { get; set; }
     public bool IsActive { get; set; }
 }

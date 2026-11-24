@@ -74,7 +74,7 @@ public class TasksController : ControllerBase
 
         var sites = await _dbContext.ClientSites.AsNoTracking()
             .Where(s => siteIds.Contains(s.Id))
-            .ToDictionaryAsync(s => s.Id, s => s.SiteName, cancellationToken);
+            .ToDictionaryAsync(s => s.Id, s => s.Name, cancellationToken);
 
         var employees = await _dbContext.Employees.AsNoTracking()
             .Where(e => empIds.Contains(e.Id))
