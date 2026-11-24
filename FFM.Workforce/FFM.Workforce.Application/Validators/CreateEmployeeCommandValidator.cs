@@ -1,0 +1,49 @@
+using FluentValidation;
+using FFM.Workforce.Application.Commands;
+
+namespace FFM.Workforce.Application.Validators
+{
+    /// <summary>
+    /// Validation rules for CreateEmployeeCommand.
+    /// Only validates client-supplied fields. Server-side fields (UserId, OrgUnitId, CreatedBy, etc.)
+    /// are not validated here — they are handled in the handler.
+    /// </summary>
+    public class CreateEmployeeCommandValidator : AbstractValidator<CreateEmployeeCommand>
+    {
+        public CreateEmployeeCommandValidator()
+        {
+            RuleFor(x => x.EmployeeCode)
+                .NotEmpty().WithMessage("EmployeeCode is required.")
+                .MaximumLength(20).WithMessage("EmployeeCode must not exceed 20 characters.");
+
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage("Name is required.")
+                .MaximumLength(100).WithMessage("Name must not exceed 100 characters.")
+                .Matches(@"^[\p{L}\s\.\'\-]+$").WithMessage("Name contains invalid characters.");
+
+            RuleFor(x => x.RoleId)
+                .GreaterThan(0).WithMessage("RoleId is required.");
+
+            RuleFor(x => x.Password)
+                .NotEmpty().WithMessage("Password is required.")
+                .MinimumLength(8).WithMessage("Password must be at least 8 characters.")
+                .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+                .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+                .Matches(@"[0-9]").WithMessage("Password must contain at least one number.")
+                .Matches(@"[\W_]").WithMessage("Password must contain at least one special character.");
+
+            // Optional fields validation
+            When(x => !string.IsNullOrWhiteSpace(x.Email), () =>
+            {
+                RuleFor(x => x.Email)
+                    .EmailAddress().WithMessage("Email must be a valid email address.");
+            });
+
+            When(x => !string.IsNullOrWhiteSpace(x.Mobile), () =>
+            {
+                RuleFor(x => x.Mobile)
+                    .Matches("^[0-9]{10,15}$").WithMessage("Mobile must contain only digits and be 10‑15 characters long.");
+            });
+        }
+    }
+}

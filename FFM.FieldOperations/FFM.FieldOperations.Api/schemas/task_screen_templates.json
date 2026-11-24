@@ -1,0 +1,349 @@
+{
+  "GENERAL": {
+    "screenId": "TASK_EXECUTION_SCREEN",
+    "title": "General Work Order Execution",
+    "version": "2.0",
+    "taskType": "GENERAL",
+    "theme": {
+      "primaryColor": "#1E3A8A",
+      "accentColor": "#2563EB",
+      "backgroundColor": "#F8FAFC",
+      "cardBackgroundColor": "#FFFFFF"
+    },
+    "widgets": [
+      {
+        "widgetId": "hero_header",
+        "widgetType": "HERO_HEADER",
+        "title": "Work Order Overview",
+        "order": 1,
+        "isVisible": true,
+        "properties": {
+          "showCountdownTimer": true,
+          "badgeStyle": "PILL"
+        }
+      },
+      {
+        "widgetId": "client_site_info",
+        "widgetType": "CLIENT_SITE_CARD",
+        "title": "Client Facility & Geofence",
+        "order": 2,
+        "isVisible": true,
+        "properties": {
+          "enableDirectCall": true,
+          "enableMapNavigation": true,
+          "showGeofenceBoundaryPill": true
+        }
+      },
+      {
+        "widgetId": "form_specifications",
+        "widgetType": "FORM_SECTION",
+        "title": "Job Specifications & Details",
+        "order": 3,
+        "isVisible": true,
+        "properties": {
+          "category": "GENERAL"
+        }
+      },
+      {
+        "widgetId": "telemetry_readings",
+        "widgetType": "TELEMETRY_GAUGES",
+        "title": "Operational Telemetry Readings",
+        "order": 4,
+        "isVisible": true,
+        "properties": {
+          "metrics": [
+            { "key": "statusNotes", "label": "Operational Status", "widget": "TEXT_INPUT", "required": false },
+            { "key": "safetyAuditPassed", "label": "Safety Checklist Completed", "widget": "TOGGLE_SWITCH", "required": true }
+          ]
+        }
+      },
+      {
+        "widgetId": "evidence_gallery",
+        "widgetType": "EVIDENCE_GALLERY",
+        "title": "Proof of Work (Photos & Signatures)",
+        "order": 5,
+        "isVisible": true,
+        "properties": {
+          "allowMultiPhotoUpload": true,
+          "checklist": [
+            { "evidenceTypeId": 1, "code": "PHOTO", "label": "Before / After Work Photo", "mandatory": true, "maxCount": 5 },
+            { "evidenceTypeId": 3, "code": "SIGNATURE", "label": "Customer Sign-Off", "mandatory": false, "maxCount": 1 }
+          ]
+        }
+      },
+      {
+        "widgetId": "bottom_action_bar",
+        "widgetType": "BOTTOM_ACTION_BAR",
+        "title": "Execution State Machine Actions",
+        "order": 6,
+        "isVisible": true,
+        "properties": {
+          "isSticky": true
+        }
+      }
+    ]
+  },
+  "AC_MAINTENANCE": {
+    "screenId": "TASK_EXECUTION_SCREEN",
+    "title": "HVAC & AC Maintenance Work Order",
+    "version": "2.0",
+    "taskType": "AC_MAINTENANCE",
+    "theme": {
+      "primaryColor": "#0369A1",
+      "accentColor": "#0284C7",
+      "backgroundColor": "#F0F9FF",
+      "cardBackgroundColor": "#FFFFFF"
+    },
+    "widgets": [
+      {
+        "widgetId": "hero_header",
+        "widgetType": "HERO_HEADER",
+        "title": "AC Maintenance Overview",
+        "order": 1,
+        "isVisible": true,
+        "properties": {
+          "showCountdownTimer": true,
+          "badgeStyle": "PILL"
+        }
+      },
+      {
+        "widgetId": "client_site_info",
+        "widgetType": "CLIENT_SITE_CARD",
+        "title": "Client Facility & Geofence",
+        "order": 2,
+        "isVisible": true,
+        "properties": {
+          "enableDirectCall": true,
+          "enableMapNavigation": true,
+          "showGeofenceBoundaryPill": true
+        }
+      },
+      {
+        "widgetId": "form_specifications",
+        "widgetType": "FORM_SECTION",
+        "title": "AC Equipment Specifications",
+        "order": 3,
+        "isVisible": true,
+        "properties": {
+          "category": "AC_MAINTENANCE"
+        }
+      },
+      {
+        "widgetId": "telemetry_readings",
+        "widgetType": "TELEMETRY_GAUGES",
+        "title": "Compressor & Pressure Telemetry",
+        "order": 4,
+        "isVisible": true,
+        "properties": {
+          "metrics": [
+            { "key": "compressorPressurePsi", "label": "Compressor Pressure (PSI)", "unit": "PSI", "widget": "GAUGE_INPUT", "recommendedRange": "60 - 80", "required": true },
+            { "key": "coolingTemperatureC", "label": "Chiller Output Temperature (°C)", "unit": "°C", "widget": "NUMBER_INPUT", "recommendedRange": "15 - 20", "required": true },
+            { "key": "refrigerantLeakCheckPassed", "label": "Refrigerant Leak Test Passed", "widget": "TOGGLE_SWITCH", "required": true },
+            { "key": "motorCurrentAmps", "label": "Motor Current Draw (Amps)", "unit": "A", "widget": "NUMBER_INPUT", "required": false }
+          ]
+        }
+      },
+      {
+        "widgetId": "evidence_gallery",
+        "widgetType": "EVIDENCE_GALLERY",
+        "title": "Proof of Work (Photos & Signatures)",
+        "order": 5,
+        "isVisible": true,
+        "properties": {
+          "allowMultiPhotoUpload": true,
+          "checklist": [
+            { "evidenceTypeId": 1, "code": "PHOTO", "label": "Compressor & Coils Inspection Photo", "mandatory": true, "maxCount": 5 },
+            { "evidenceTypeId": 2, "code": "METER_READING", "label": "Manifold Gauge Pressure Reading", "mandatory": true, "maxCount": 2 },
+            { "evidenceTypeId": 3, "code": "SIGNATURE", "label": "Customer Sign-Off", "mandatory": false, "maxCount": 1 }
+          ]
+        }
+      },
+      {
+        "widgetId": "bottom_action_bar",
+        "widgetType": "BOTTOM_ACTION_BAR",
+        "title": "Execution State Machine Actions",
+        "order": 6,
+        "isVisible": true,
+        "properties": {
+          "isSticky": true
+        }
+      }
+    ]
+  },
+  "SOLAR_PANEL": {
+    "screenId": "TASK_EXECUTION_SCREEN",
+    "title": "Solar Photovoltaic Maintenance Work Order",
+    "version": "2.0",
+    "taskType": "SOLAR_PANEL",
+    "theme": {
+      "primaryColor": "#B45309",
+      "accentColor": "#D97706",
+      "backgroundColor": "#FFFBEB",
+      "cardBackgroundColor": "#FFFFFF"
+    },
+    "widgets": [
+      {
+        "widgetId": "hero_header",
+        "widgetType": "HERO_HEADER",
+        "title": "Solar PV Maintenance Overview",
+        "order": 1,
+        "isVisible": true,
+        "properties": {
+          "showCountdownTimer": true,
+          "badgeStyle": "PILL"
+        }
+      },
+      {
+        "widgetId": "client_site_info",
+        "widgetType": "CLIENT_SITE_CARD",
+        "title": "Client Facility & Geofence",
+        "order": 2,
+        "isVisible": true,
+        "properties": {
+          "enableDirectCall": true,
+          "enableMapNavigation": true,
+          "showGeofenceBoundaryPill": true
+        }
+      },
+      {
+        "widgetId": "form_specifications",
+        "widgetType": "FORM_SECTION",
+        "title": "Solar Array Specifications",
+        "order": 3,
+        "isVisible": true,
+        "properties": {
+          "category": "SOLAR_PANEL"
+        }
+      },
+      {
+        "widgetId": "telemetry_readings",
+        "widgetType": "TELEMETRY_GAUGES",
+        "title": "Inverter & Array Telemetry",
+        "order": 4,
+        "isVisible": true,
+        "properties": {
+          "metrics": [
+            { "key": "inverterEfficiencyPct", "label": "Inverter Efficiency (%)", "unit": "%", "widget": "GAUGE_INPUT", "required": true },
+            { "key": "dailyYieldKwh", "label": "Daily Energy Yield (kWh)", "unit": "kWh", "widget": "NUMBER_INPUT", "required": true },
+            { "key": "panelTiltDegrees", "label": "Array Tilt Angle (°)", "unit": "°", "widget": "NUMBER_INPUT", "required": false },
+            { "key": "isGridSynchronized", "label": "Grid Synchronization Active", "widget": "TOGGLE_SWITCH", "required": true }
+          ]
+        }
+      },
+      {
+        "widgetId": "evidence_gallery",
+        "widgetType": "EVIDENCE_GALLERY",
+        "title": "Proof of Work (Photos & Signatures)",
+        "order": 5,
+        "isVisible": true,
+        "properties": {
+          "allowMultiPhotoUpload": true,
+          "checklist": [
+            { "evidenceTypeId": 1, "code": "PHOTO", "label": "PV Array & Inverter Inspection Photo", "mandatory": true, "maxCount": 6 },
+            { "evidenceTypeId": 2, "code": "METER_READING", "label": "Inverter Display Power Metrics", "mandatory": true, "maxCount": 2 },
+            { "evidenceTypeId": 3, "code": "SIGNATURE", "label": "Customer Sign-Off", "mandatory": false, "maxCount": 1 }
+          ]
+        }
+      },
+      {
+        "widgetId": "bottom_action_bar",
+        "widgetType": "BOTTOM_ACTION_BAR",
+        "title": "Execution State Machine Actions",
+        "order": 6,
+        "isVisible": true,
+        "properties": {
+          "isSticky": true
+        }
+      }
+    ]
+  },
+  "ELEVATOR": {
+    "screenId": "TASK_EXECUTION_SCREEN",
+    "title": "Elevator & Lift Maintenance Work Order",
+    "version": "2.0",
+    "taskType": "ELEVATOR",
+    "theme": {
+      "primaryColor": "#4338CA",
+      "accentColor": "#6366F1",
+      "backgroundColor": "#EEF2FF",
+      "cardBackgroundColor": "#FFFFFF"
+    },
+    "widgets": [
+      {
+        "widgetId": "hero_header",
+        "widgetType": "HERO_HEADER",
+        "title": "Elevator Maintenance Overview",
+        "order": 1,
+        "isVisible": true,
+        "properties": {
+          "showCountdownTimer": true,
+          "badgeStyle": "PILL"
+        }
+      },
+      {
+        "widgetId": "client_site_info",
+        "widgetType": "CLIENT_SITE_CARD",
+        "title": "Client Facility & Geofence",
+        "order": 2,
+        "isVisible": true,
+        "properties": {
+          "enableDirectCall": true,
+          "enableMapNavigation": true,
+          "showGeofenceBoundaryPill": true
+        }
+      },
+      {
+        "widgetId": "form_specifications",
+        "widgetType": "FORM_SECTION",
+        "title": "Elevator Shaft & Car Specifications",
+        "order": 3,
+        "isVisible": true,
+        "properties": {
+          "category": "ELEVATOR"
+        }
+      },
+      {
+        "widgetId": "telemetry_readings",
+        "widgetType": "TELEMETRY_GAUGES",
+        "title": "Mechanical & Safety Telemetry",
+        "order": 4,
+        "isVisible": true,
+        "properties": {
+          "metrics": [
+            { "key": "cableTensionKg", "label": "Tension Cable Load (kg)", "unit": "kg", "widget": "GAUGE_INPUT", "required": true },
+            { "key": "brakePadWearMm", "label": "Brake Pad Thickness (mm)", "unit": "mm", "widget": "NUMBER_INPUT", "required": true },
+            { "key": "doorCycleSeconds", "label": "Door Open/Close Cycle (sec)", "unit": "s", "widget": "NUMBER_INPUT", "required": true },
+            { "key": "governorTripSpeedMs", "label": "Governor Over-Speed Trip (m/s)", "unit": "m/s", "widget": "NUMBER_INPUT", "required": true },
+            { "key": "emergencyStopPassed", "label": "Emergency Stop Safety Verified", "widget": "TOGGLE_SWITCH", "required": true }
+          ]
+        }
+      },
+      {
+        "widgetId": "evidence_gallery",
+        "widgetType": "EVIDENCE_GALLERY",
+        "title": "Proof of Work (Photos & Signatures)",
+        "order": 5,
+        "isVisible": true,
+        "properties": {
+          "allowMultiPhotoUpload": true,
+          "checklist": [
+            { "evidenceTypeId": 1, "code": "PHOTO", "label": "Machine Room & Cable Inspection Photo", "mandatory": true, "maxCount": 5 },
+            { "evidenceTypeId": 2, "code": "METER_READING", "label": "Brake & Tension Measurement Display", "mandatory": true, "maxCount": 2 },
+            { "evidenceTypeId": 3, "code": "SIGNATURE", "label": "Building Manager Sign-Off", "mandatory": true, "maxCount": 1 }
+          ]
+        }
+      },
+      {
+        "widgetId": "bottom_action_bar",
+        "widgetType": "BOTTOM_ACTION_BAR",
+        "title": "Execution State Machine Actions",
+        "order": 6,
+        "isVisible": true,
+        "properties": {
+          "isSticky": true
+        }
+      }
+    ]
+  }
+}
+

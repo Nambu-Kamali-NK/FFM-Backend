@@ -1,0 +1,1 @@
+{"type":1,"invocationId":"1","target":"SendBreadcrumb","arguments":[{"userId":217,"latitude":13.085,"longitude":80.272,"accuracyMeters":5,"speedKmh":45,"activityType":"Driving"}]}

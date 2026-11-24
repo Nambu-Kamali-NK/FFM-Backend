@@ -1,0 +1,21 @@
+{
+  "testName": "FFM Notification Service - Device Registration Load Test",
+  "endpoint": "POST /api/v1/Notifications/devices/register",
+  "executedAt": "2026-11-23T04:49:29.4469634Z",
+  "totalRequests": 1500,
+  "concurrency": 50,
+  "totalDurationSeconds": 0.97,
+  "throughputRps": 1540.3,
+  "successRatePercent": 100,
+  "successfulRequests": 1500,
+  "failedRequests": 0,
+  "latenciesMs": {
+    "min": 16.87,
+    "mean": 31.36,
+    "p50": 28.92,
+    "p90": 43.71,
+    "p95": 52.69,
+    "p99": 60.07,
+    "max": 76.57
+  }
+}

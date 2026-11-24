@@ -1,0 +1,64 @@
+## .gitignore for FFM Backend Solution
+
+# Cryptographic Keys & Secrets (DO NOT COMMIT)
+*.key
+!identity-public.key
+!FFM.Workforce/FFM.Workforce.Api/identity-public.key
+identity-private.key
+*.pem
+*.pfx
+*.p12
+*.cert
+*.cer
+*.crt
+secrets/
+.secrets/
+*firebase*.json
+*service-account*.json
+*.docx
+
+# Environment and Local Settings
+.env
+.env.*
+!docker-compose.yml
+appsettings*.local.json
+*.backup
+*.dump
+*.sql
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Scratch and logs
+scratch/
+build.log
+*.bin
+*.pdf

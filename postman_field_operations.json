@@ -1,0 +1,845 @@
+{
+  "info": {
+    "name": "FFM - Field Operations Service (Port 5030)",
+    "description": "Comprehensive Postman Collection for FFM Field Operations API v1 (.NET 8 Clean Architecture).\nIncludes Client Sites, Task Management, SDUI Dynamic Schemas, GPS Geofenced Check-In, S3 Pre-Signed Upload URLs, Batch Evidences, and Dynamic Telemetry Readings.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "fieldOpsUrl",
+      "value": "http://localhost:5030",
+      "type": "string"
+    },
+    {
+      "key": "authUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImZmbS1yc2Eta2V5LTEiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxNyIsInVzZXJJZCI6IjE3IiwidXNlcl9pZCI6IjE3IiwibmFtZWlkIjoiMTciLCJqdGkiOiI0OGFhY2RjNi0xZGVkLTQzNDEtYjQ2Ny0xNjcwYWFiNTQ2ZDIiLCJjbGllbnRfaWQiOiJmZm0tcG9ydGFsIiwicm9sZSI6WyJBRE1JTiIsIkFETUlOIl0sIm5iZiI6MTc5MzE2NjgxNSwiZXhwIjoxNzk1NzYyNDE1LCJpYXQiOjE3OTMxNzA0MTUsImlzcyI6Imh0dHBzOi8vZmZtLmV4YW1wbGUuY29tIiwiYXVkIjoiZmZtLWNsaWVudCJ9.lhPTVFV_ec0sqt4gFWHFMSL7HCRqWhAPoTgFEf3wR4O9CSNEoOH_p2am_mrU4ywz6AKmLPlLZt3lWmOkCtzOyc3MnhRK_h9k0a_oUC5WE5koWqMH4Jw8zKF0kTZXT6ctDxxkpYrtcbjQZuFNqgS8toOVEabtXnY0UIiQ7kVKGWUy34gDrTe9bF45K6Wh7UPXpqNxbRvXSNAqsYh4jpBocB09167haQIZkLrfv1JHA1QA1WQrV86k8lviN1t4CqMzL9IGVaLOEuUx2Oeg3BiYRlk9ZG4MtVYI8Ta6LGkQQPGe68wT7l_GNf-gbwKhGT80gGoW7PhVtbhIMQe-pQdLHw",
+      "type": "string"
+    },
+    {
+      "key": "employeeToken",
+      "value": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImZmbS1yc2Eta2V5LTEiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMiIsInVzZXJJZCI6IjEyIiwidXNlcl9pZCI6IjEyIiwibmFtZWlkIjoiMTIiLCJqdGkiOiI4MTM2MDljMy1lYmE5LTQxYjktODc4ZC0yZDgyNTkwYTBiNGQiLCJjbGllbnRfaWQiOiJmZm0tbW9iaWxlIiwicm9sZSI6WyJFTVBMT1lFRSIsIkVNUExPWUVFIl0sIm5iZiI6MTc5MzE2NjgxNSwiZXhwIjoxNzk1NzYyNDE1LCJpYXQiOjE3OTMxNzA0MTUsImlzcyI6Imh0dHBzOi8vZmZtLmV4YW1wbGUuY29tIiwiYXVkIjoiZmZtLWNsaWVudCJ9.a4kLo_--1xDuqd0-vJiiqDTT9XI5rGbc9wpknFP0NlLz3RLeKZSEsl-S_TF3jwcz3qRWf8yDvy5G3US5kz-37ycLMGRQgC_euBUYvpVuSMFDfAmcw43cvtGb-0jYSWU-fviAXQIhKgdz6pll_FXxFgTAyv0wU4ZNVEewUKyZNEhxH2-_ip-p6BlMTJwBEunlgrqv29xlX0pLjoqZ5QdxNNEsYSXX-pCGJe52GP92gboG6gc4nAJp8wXT_mC9ZcZoGv5EuUxOFogHupzMVJLy-vuBfkXpkQWB_ZuoiRZJVEDIPxam22wNFKdmsBifEvzr7YJcn9aOotlYgSq5-XqrdA",
+      "type": "string"
+    },
+    {
+      "key": "siteId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "307",
+      "type": "string"
+    },
+    {
+      "key": "visitId",
+      "value": "302",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication & Token Management",
+      "item": [
+        {
+          "name": "1. Admin Login (Acquire Admin Bearer Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin@ffm.com\",\n  \"password\": \"AdminPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{authUrl}}/api/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    var token = data.accessToken || data.token || (data.data && data.data.accessToken);",
+                  "    if (token) {",
+                  "        pm.collectionVariables.set('adminToken', token);",
+                  "        console.log('adminToken successfully refreshed.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Employee Login (Acquire Technician Bearer Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"tech12@ffm.com\",\n  \"password\": \"TechPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{authUrl}}/api/auth/login",
+              "host": [
+                "{{authUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    var token = data.accessToken || data.token || (data.data && data.data.accessToken);",
+                  "    if (token) {",
+                  "        pm.collectionVariables.set('employeeToken', token);",
+                  "        console.log('employeeToken successfully refreshed.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Client Sites Management",
+      "item": [
+        {
+          "name": "1. Register New Client Site",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"siteCode\": \"SITE-BLR-010\",\n  \"name\": \"HDFC Bank Regional Office - MG Road\",\n  \"contactPerson\": \"Mr. Suresh Nair\",\n  \"contactPhone\": \"+919880011223\",\n  \"contactEmail\": \"suresh.nair@hdfcbank.com\",\n  \"latitude\": 12.9715987,\n  \"longitude\": 77.5945627,\n  \"radiusMeters\": 150,\n  \"address\": \"No. 8/2, Ground Floor, MG Road, Ashok Nagar\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\"\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/ClientSites",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ClientSites"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created or 200 OK', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "var res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('siteId', res.data.id.toString());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Get All Client Sites (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/ClientSites?pageNumber=1&pageSize=10",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ClientSites"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Client Site By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/ClientSites/{{siteId}}",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ClientSites",
+                "{{siteId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Tasks Management & SDUI",
+      "item": [
+        {
+          "name": "1. Get Task Form Schema - AC Maintenance (Physical SDUI)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/form-schema?taskType=AC_MAINTENANCE",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "form-schema"
+              ],
+              "query": [
+                {
+                  "key": "taskType",
+                  "value": "AC_MAINTENANCE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Get Task Form Schema - Solar Panel (Physical SDUI)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/form-schema?taskType=SOLAR_PANEL",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "form-schema"
+              ],
+              "query": [
+                {
+                  "key": "taskType",
+                  "value": "SOLAR_PANEL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Task Dynamic Action Buttons (SDUI State Machine)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/actions?taskId={{taskId}}",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "taskId",
+                  "value": "{{taskId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Task Cancellation Questionnaire (SDUI)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/cancellation-schema",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "cancellation-schema"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Get Full-Screen SDUI Layout (Hydrated by TaskId)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/screen-layout?taskId={{taskId}}",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "screen-layout"
+              ],
+              "query": [
+                {
+                  "key": "taskId",
+                  "value": "{{taskId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Get Full-Screen SDUI Template (Static by TaskType)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/screen-layout?taskType=AC_MAINTENANCE",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "screen-layout"
+              ],
+              "query": [
+                {
+                  "key": "taskType",
+                  "value": "AC_MAINTENANCE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Create & Schedule New Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"HVAC Chiller Compressor Overhaul\",\n  \"description\": \"Complete on-site compressor inspection, refrigerant leak check, and motor coil testing.\",\n  \"clientSiteId\": 1,\n  \"assignedEmployeeId\": 12,\n  \"priority\": \"HIGH\",\n  \"scheduledStart\": \"2026-11-05T09:00:00Z\",\n  \"scheduledEnd\": \"2026-11-05T17:00:00Z\",\n  \"taskType\": \"AC_MAINTENANCE\",\n  \"customData\": {\n    \"hvacUnitModel\": \"Carrier 30XA Chiller\",\n    \"tonnage\": 120,\n    \"coolantType\": \"R-134a\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "var res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('taskId', res.data.id.toString());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "8. Get All Tasks (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks?pageNumber=1&pageSize=20",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Update Task Status -> EN_ROUTE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 307,\n  \"status\": \"EN_ROUTE\",\n  \"notes\": \"Technician has departed regional hub; estimated arrival in 25 minutes.\"\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/status",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Direct Task Complete (Zero Friction Completion)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 307,\n  \"status\": \"COMPLETED\",\n  \"notes\": \"Emergency off-site diagnostics finished remotely. Task closed directly.\"\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/status",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "11. Reassign Task to Another Technician",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 307,\n  \"assignedEmployeeId\": 8\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/reassign",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "reassign"
+              ]
+            }
+          }
+        },
+        {
+          "name": "12. Cancel Task (with Audit Reason)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 307,\n  \"reason\": \"Customer rescheduled service due to commercial holiday shutdown.\"\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Tasks/cancel",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Tasks",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Visits & On-Site Execution",
+      "item": [
+        {
+          "name": "1. Get Visit Evidence Checklist Schema (SDUI)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Visits/evidence-schema?taskType=AC_MAINTENANCE",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Visits",
+                "evidence-schema"
+              ],
+              "query": [
+                {
+                  "key": "taskType",
+                  "value": "AC_MAINTENANCE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Site Check-In (150m Geofence & Anti-Mock GPS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 307,\n  \"latitude\": 12.9715987,\n  \"longitude\": 77.5945627,\n  \"accuracyMeters\": 8.5,\n  \"isMockLocation\": false\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Visits/site-check-in",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Visits",
+                "site-check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created or 200 OK', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "var res = pm.response.json();",
+                  "if (res.data && res.data.visitId) {",
+                  "    pm.collectionVariables.set('visitId', res.data.visitId.toString());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Submit Evidence (Structured Files with fileName & folderPath)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visitId\": 302,\n  \"remarks\": \"AC compressor overhaul and telemetry validation completed on-site.\",\n  \"capturedLatitude\": 12.9715987,\n  \"capturedLongitude\": 77.5945627,\n  \"files\": [\n    {\n      \"fileName\": \"ac-repair.jpg\",\n      \"folderPath\": \"tasks/307/evidence\",\n      \"fileUrl\": \"https://ffm-field-evidence-prod.s3.ap-south-1.amazonaws.com/tasks/307/evidence/ac-repair.jpg\",\n      \"evidenceTypeId\": 1\n    },\n    {\n      \"fileName\": \"meter-gauge.jpg\",\n      \"folderPath\": \"tasks/307/evidence\",\n      \"fileUrl\": \"https://ffm-field-evidence-prod.s3.ap-south-1.amazonaws.com/tasks/307/evidence/meter-gauge.jpg\",\n      \"evidenceTypeId\": 2\n    }\n  ],\n  \"readings\": {\n    \"compressorPressurePsi\": 68.5,\n    \"coolingTemperatureC\": 18.2,\n    \"refrigerantLeakCheckPassed\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Visits/evidence",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Visits",
+                "evidence"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "var res = pm.response.json();",
+                  "pm.expect(res.data.files).to.be.an('array');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Get Visit Evidences (Audit Log)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Visits/evidence?visitId={{visitId}}",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Visits",
+                "evidence"
+              ],
+              "query": [
+                {
+                  "key": "visitId",
+                  "value": "{{visitId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Site Check-Out (Complete Visit & Close Task)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visitId\": 302,\n  \"taskId\": 307,\n  \"latitude\": 12.9715987,\n  \"longitude\": 77.5945627,\n  \"completionNotes\": \"Chiller loop vacuumed, compressor oil replaced, baseline telemetry verified.\",\n  \"customerName\": \"Mr. Suresh Nair\",\n  \"customerSignatureUrl\": \"https://ffm-field-evidence-prod.s3.ap-south-1.amazonaws.com/visits/302/customer_signature.png\",\n  \"customerRating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{fieldOpsUrl}}/api/v1/Visits/site-check-out",
+              "host": [
+                "{{fieldOpsUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "Visits",
+                "site-check-out"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "GENERAL": {
+    "taskType": "GENERAL",
+    "formTitle": "Create General Task",
+    "description": "Standard work order form for general facility maintenance.",
+    "sections": [
+      {
+        "title": "General Job Details",
+        "description": "Basic work order parameters and scheduling",
+        "fields": [
+          { "key": "title", "label": "Task Title", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Annual Chiller Maintenance" },
+          { "key": "clientSiteId", "label": "Client Site Location", "widget": "SEARCHABLE_DROPDOWN", "required": true, "placeholder": "Select client facility" },
+          { "key": "priority", "label": "Task Priority", "widget": "DROPDOWN", "required": true, "defaultValue": "MEDIUM", "options": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          { "key": "scheduledStart", "label": "Scheduled Start Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "scheduledEnd", "label": "Scheduled End Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "assignedEmployeeId", "label": "Assign Field Technician", "widget": "DROPDOWN", "required": false, "placeholder": "Select technician (optional)" },
+          { "key": "description", "label": "Work Scope & Instructions", "widget": "TEXT_AREA", "required": false, "placeholder": "Enter detailed scope of work..." }
+        ]
+      }
+    ]
+  },
+  "AC_MAINTENANCE": {
+    "taskType": "AC_MAINTENANCE",
+    "formTitle": "Create AC Maintenance Task",
+    "description": "Dynamic work order form for Heating, Ventilation, and Air Conditioning servicing.",
+    "sections": [
+      {
+        "title": "General Job Details",
+        "description": "Basic work order parameters and scheduling",
+        "fields": [
+          { "key": "title", "label": "Task Title", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Annual Chiller Maintenance" },
+          { "key": "clientSiteId", "label": "Client Site Location", "widget": "SEARCHABLE_DROPDOWN", "required": true, "placeholder": "Select client facility" },
+          { "key": "priority", "label": "Task Priority", "widget": "DROPDOWN", "required": true, "defaultValue": "HIGH", "options": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          { "key": "scheduledStart", "label": "Scheduled Start Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "scheduledEnd", "label": "Scheduled End Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "assignedEmployeeId", "label": "Assign Field Technician", "widget": "DROPDOWN", "required": false, "placeholder": "Select technician (optional)" },
+          { "key": "description", "label": "Work Scope & Instructions", "widget": "TEXT_AREA", "required": false, "placeholder": "Enter detailed scope of work..." }
+        ]
+      },
+      {
+        "title": "AC Equipment Specifications",
+        "description": "Technical parameters captured dynamically",
+        "fields": [
+          { "key": "acBrand", "label": "AC Manufacturer / Brand", "widget": "DROPDOWN", "required": true, "options": ["Daikin", "Voltas", "Blue Star", "Carrier", "Hitachi", "LG", "Other"] },
+          { "key": "acTonnage", "label": "Cooling Capacity (Tonnage)", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 2.0" },
+          { "key": "refrigerantType", "label": "Refrigerant Gas Type", "widget": "DROPDOWN", "required": true, "options": ["R-410A", "R-32", "R-22", "R-134a", "Other"] },
+          { "key": "floorNumber", "label": "Floor / Unit Number", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 4" },
+          { "key": "isUnderWarranty", "label": "Equipment Under Manufacturer Warranty?", "widget": "CHECKBOX", "required": false, "defaultValue": false }
+        ]
+      }
+    ]
+  },
+  "SOLAR_PANEL": {
+    "taskType": "SOLAR_PANEL",
+    "formTitle": "Create Solar PV Servicing Task",
+    "description": "Dynamic work order form for Solar Rooftop and Photovoltaic servicing.",
+    "sections": [
+      {
+        "title": "General Job Details",
+        "description": "Basic work order parameters and scheduling",
+        "fields": [
+          { "key": "title", "label": "Task Title", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Solar Array Inspection" },
+          { "key": "clientSiteId", "label": "Client Site Location", "widget": "SEARCHABLE_DROPDOWN", "required": true, "placeholder": "Select client facility" },
+          { "key": "priority", "label": "Task Priority", "widget": "DROPDOWN", "required": true, "defaultValue": "MEDIUM", "options": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          { "key": "scheduledStart", "label": "Scheduled Start Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "scheduledEnd", "label": "Scheduled End Time", "widget": "DATE_TIME_PICKER", "required": true }
+        ]
+      },
+      {
+        "title": "Solar Array Technical Specifications",
+        "description": "Photovoltaic parameters captured dynamically",
+        "fields": [
+          { "key": "capacityKw", "label": "Plant Capacity (kW)", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 50" },
+          { "key": "panelCount", "label": "Total PV Panel Count", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 120" },
+          { "key": "inverterBrand", "label": "Inverter Make / Model", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Sungrow / ABB" },
+          { "key": "cleaningRequired", "label": "Panel Cleaning & Descaling Required?", "widget": "CHECKBOX", "required": false, "defaultValue": true }
+        ]
+      }
+    ]
+  },
+  "ELEVATOR": {
+    "taskType": "ELEVATOR",
+    "formTitle": "Create Elevator Maintenance Task",
+    "description": "Dynamic work order form for Elevator and Lift inspection.",
+    "sections": [
+      {
+        "title": "General Job Details",
+        "description": "Basic work order parameters and scheduling",
+        "fields": [
+          { "key": "title", "label": "Task Title", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Elevator Brake Overhaul" },
+          { "key": "clientSiteId", "label": "Client Site Location", "widget": "SEARCHABLE_DROPDOWN", "required": true, "placeholder": "Select client facility" },
+          { "key": "priority", "label": "Task Priority", "widget": "DROPDOWN", "required": true, "defaultValue": "HIGH", "options": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+          { "key": "scheduledStart", "label": "Scheduled Start Time", "widget": "DATE_TIME_PICKER", "required": true },
+          { "key": "scheduledEnd", "label": "Scheduled End Time", "widget": "DATE_TIME_PICKER", "required": true }
+        ]
+      },
+      {
+        "title": "Elevator Engineering Specifications",
+        "description": "Safety parameters captured dynamically",
+        "fields": [
+          { "key": "elevatorBrand", "label": "Elevator Manufacturer", "widget": "DROPDOWN", "required": true, "options": ["Otis", "Schindler", "Kone", "Thyssenkrupp", "Mitsubishi", "Other"] },
+          { "key": "liftNumber", "label": "Lift Identifier / Shaft ID", "widget": "TEXT_INPUT", "required": true, "placeholder": "e.g., Passenger Lift A" },
+          { "key": "floorsServiced", "label": "Total Floors Serviced", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 15" },
+          { "key": "loadCapacityKg", "label": "Max Weight Capacity (kg)", "widget": "NUMBER_INPUT", "required": true, "placeholder": "e.g., 1000" }
+        ]
+      }
+    ]
+  }
+}
+

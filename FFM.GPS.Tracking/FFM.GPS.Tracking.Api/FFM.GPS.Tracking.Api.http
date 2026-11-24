@@ -1,0 +1,6 @@
+@FFM.GPS.Tracking.Api_HostAddress = http://localhost:5106
+
+GET {{FFM.GPS.Tracking.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

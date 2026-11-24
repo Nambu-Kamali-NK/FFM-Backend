@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "FFM Workforce Service - Leave Management",
+    "description": "Postman Collection for Leave Management Endpoints (Types, Balances, Submissions, Approvals, Cancellations)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "identityUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "workforceUrl",
+      "value": "http://localhost:5010",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImZmbS1yc2Eta2V5LTEiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMiIsInVzZXJJZCI6IjEyIiwidXNlcl9pZCI6IjEyIiwibmFtZWlkIjoiMTIiLCJqdGkiOiI3ZjRmNmIwYy1mYjc1LTQyMWItYjA5Yi1kODZiY2I3YTlhYTYiLCJjbGllbnRfaWQiOiJmZm0tcG9ydGFsIiwicm9sZSI6WyJBRE1JTiIsIkFETUlOIl0sIm5iZiI6MTc5MjU2NDU0MywiZXhwIjoxNzk1MTU2NTQzLCJpYXQiOjE3OTI1NjQ1NDMsImlzcyI6Imh0dHBzOi8vZmZtLmV4YW1wbGUuY29tIiwiYXVkIjoiZmZtLWNsaWVudCJ9.GOYSjnsnCbNTbwktiQ81ovuVZ5xj838IGwWQv90BssjDYTrdna6QDVuzIKGJ4pFkyVVFkfNnfUSiFF8Xp40h2oXrfdmltUZNUNhXR5qUua9C3HQxfdNm4Gsq4f0WznWkx7K-1CBWvj-1fnk2tUE3_svXmEq8UIJJeWgMMe4krobyoY6h37m5AmJIZFou5JWl1-BkqEIWT8-Poz5hgKFVJ23uM7H2aba39ogSQ_YWU32c5r5os4ff08hQO44jcmYRkUTQ0j4S0uk3wgdvVSeyqRB1cLWHyx7fHAFthbH7ykFIjp26tk9oJDAhgl7GEb8KkxBIhavRgV4iqmxXTv3iSA",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Login (Get Employee Token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"seetha@gmail.com\",\n  \"password\": \"Seetha@2026\"\n}"
+        },
+        "url": {
+          "raw": "{{identityUrl}}/api/auth/login",
+          "host": ["{{identityUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('authToken', jsonData.accessToken);",
+              "    console.log('authToken updated successfully');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Get Leave Types",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/types",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "types"]
+        }
+      }
+    },
+    {
+      "name": "3. Get My Leave Balances",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/balances",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "balances"]
+        }
+      }
+    },
+    {
+      "name": "4. Submit Leave Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaveTypeId\": 1,\n  \"startDate\": \"2026-11-10T00:00:00Z\",\n  \"endDate\": \"2026-11-11T00:00:00Z\",\n  \"isHalfDay\": false,\n  \"reason\": \"Family function in hometown\"\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/requests",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "requests"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.id) {",
+              "        pm.collectionVariables.set('requestId', jsonData.data.id.toString());",
+              "        console.log('requestId set to ' + jsonData.data.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Query Leave Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/requests?page=1&pageSize=20",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "requests"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Manager / Admin Decision (Approve / Reject)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": {{requestId}},\n  \"decision\": \"APPROVED\",\n  \"comments\": \"Approved by manager\"\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/requests/decision",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "requests", "decision"]
+        }
+      }
+    },
+    {
+      "name": "7. Cancel Leave Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": {{requestId}}\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/leave/requests/cancel",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "leave", "requests", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "8. Submit Permission Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"permissionDate\": \"2026-11-20T00:00:00Z\",\n  \"startTime\": \"14:00:00\",\n  \"endTime\": \"16:00:00\",\n  \"reason\": \"Medical appointment\"\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/permissions/requests",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "permissions", "requests"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.id) {",
+              "        pm.collectionVariables.set('permissionId', jsonData.data.id.toString());",
+              "        console.log('permissionId set to ' + jsonData.data.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Query Permission Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/permissions/requests?page=1&pageSize=20",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "permissions", "requests"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Manager Decision on Permission (Approve / Reject)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": {{permissionId}},\n  \"decision\": \"APPROVED\",\n  \"comments\": \"Approved by manager\"\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/permissions/requests/decision",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "permissions", "requests", "decision"]
+        }
+      }
+    },
+    {
+      "name": "11. Cancel Permission Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": {{permissionId}}\n}"
+        },
+        "url": {
+          "raw": "{{workforceUrl}}/api/v1/permissions/requests/cancel",
+          "host": ["{{workforceUrl}}"],
+          "path": ["api", "v1", "permissions", "requests", "cancel"]
+        }
+      }
+    }
+  ]
+}

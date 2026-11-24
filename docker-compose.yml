@@ -1,0 +1,173 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ffm-identity-access-db
+    environment:
+      POSTGRES_USER: ffmid_user
+      POSTGRES_PASSWORD: ffm_pass
+      POSTGRES_DB: ffm_db
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ffm-identity-access-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ffm-identity-access-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: identity
+    container_name: ffm-identity-access-api
+    ports:
+      - "5000:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=ffm_db;Username=ffmid_user;Password=ffm_pass"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "guest"
+      RabbitMq__Password: "guest"
+      JWT_RSA_PRIVATE_KEY: "${JWT_RSA_PRIVATE_KEY}"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  workforce-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: workforce
+    container_name: ffm-workforce-api
+    ports:
+      - "5010:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=ffm_db;Username=ffmid_user;Password=ffm_pass"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "guest"
+      RabbitMq__Password: "guest"
+      Jwt__Key: "SuperSecretDevelopmentKey123!"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gps-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: gps
+    container_name: ffm-gps-tracking-api
+    ports:
+      - "5020:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=ffm_db;Username=ffmid_user;Password=ffm_pass"
+      Redis__ConnectionString: "redis:6379"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  field-operations-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: fieldoperations
+    container_name: ffm-field-operations-api
+    ports:
+      - "5030:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=ffm_db;Username=ffmid_user;Password=ffm_pass"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: notification
+    container_name: ffm-notification-api
+    ports:
+      - "5040:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=ffm_db;Username=ffmid_user;Password=ffm_pass"
+      Redis__ConnectionString: "redis:6379"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__User: "guest"
+      RabbitMq__Password: "guest"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

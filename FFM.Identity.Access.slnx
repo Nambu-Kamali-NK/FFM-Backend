@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FFM.Identity.Access.Api/FFM.Identity.Access.Api.csproj" />
+  <Project Path="FFM.Identity.Access.Domain/FFM.Identity.Access.Domain.csproj" />
+  <Project Path="FFM.Identity.Access.Infrastructure/FFM.Identity.Access.Infrastructure.csproj" />
+</Solution>

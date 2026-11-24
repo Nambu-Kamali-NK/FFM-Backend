@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="FFM.Notification.Api/FFM.Notification.Api.csproj" />
+  <Project Path="FFM.Notification.Application/FFM.Notification.Application.csproj" />
+  <Project Path="FFM.Notification.Domain/FFM.Notification.Domain.csproj" />
+  <Project Path="FFM.Notification.Infrastructure/FFM.Notification.Infrastructure.csproj" />
+  <Project Path="FFM.Notification.Tests/FFM.Notification.Tests.csproj" />
+</Solution>

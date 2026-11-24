@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FFM - Real Google FCM Device Token Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    h2 {
+      margin-top: 0;
+      color: #1a73e8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    p {
+      color: #5f6368;
+      line-height: 1.6;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      background: #e8f0fe;
+      color: #1967d2;
+    }
+    button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1557b0;
+    }
+    button:disabled {
+      background: #dadce0;
+      cursor: not-allowed;
+    }
+    .token-box {
+      margin-top: 24px;
+      display: none;
+      background: #f8f9fa;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    textarea {
+      width: 100%;
+      height: 90px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 8px;
+      box-sizing: border-box;
+      resize: none;
+      background: #fff;
+    }
+    .copy-btn {
+      margin-top: 10px;
+      background: #34a853;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+    .copy-btn:hover {
+      background: #2d8e47;
+    }
+    .notification-alert {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #e6f4ea;
+      color: #137333;
+      font-weight: 500;
+      display: none;
+    }
+  </style>
+
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+</head>
+<body>
+  <div class="card">
+    <span class="status-badge" id="statusBadge">Ready to Register</span>
+    <h2>🔥 Real Google FCM Token Generator</h2>
+    <p>This page registers your web browser as a live Google FCM client device for project <b>ffm-notification-api</b>. When you send a push notification from the backend, your browser will receive the live alert!</p>
+
+    <button id="generateBtn" onclick="requestAndGetToken()">Get Real Google FCM Token</button>
+
+    <div class="token-box" id="tokenBox">
+      <h4 style="margin:0 0 8px 0; color:#202124;">✅ Authentic Google FCM Device Token:</h4>
+      <textarea id="tokenText" readonly></textarea>
+      <button class="copy-btn" id="copyBtn" onclick="copyToken()">📋 Copy Token</button>
+      <p style="font-size: 12px; color: #5f6368; margin-top: 10px;">
+        👉 Now go to Swagger <code>POST /api/v1/Notifications/devices/register</code>, paste this into <code>fcmToken</code>, and set <code>platform: "WEB"</code>!
+      </p>
+    </div>
+
+    <div class="notification-alert" id="incomingAlert"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtLJlWp4Xulii2rfrc_XSDGruwqFBlCMo",
+      authDomain: "ffm-notification-api.firebaseapp.com",
+      projectId: "ffm-notification-api",
+      storageBucket: "ffm-notification-api.firebasestorage.app",
+      messagingSenderId: "214942890435",
+      appId: "1:214942890435:web:c56e26b7db3ff057f3a576"
+    };
+
+    const VAPID_KEY = "BGD5g1jOTQhpZh7j0yRa9xtpjCTIBp7VHAsOij2kyGJX8vOuCf5YWqZa6CXSktXi-NogeKkEL7iMAZOeaUPB0eE";
+
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    async function requestAndGetToken() {
+      const btn = document.getElementById("generateBtn");
+      const statusBadge = document.getElementById("statusBadge");
+      btn.disabled = true;
+      btn.innerText = "Contacting Google...";
+      statusBadge.innerText = "Requesting Permission...";
+
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          alert("Notification permission denied! Please allow notifications in your browser address bar.");
+          btn.disabled = false;
+          btn.innerText = "Try Again";
+          statusBadge.innerText = "Permission Denied";
+          return;
+        }
+
+        statusBadge.innerText = "Registering Service Worker...";
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log("Service Worker registered:", registration);
+
+        statusBadge.innerText = "Minting Google Device Token...";
+        const currentToken = await messaging.getToken({
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: registration
+        });
+
+        if (currentToken) {
+          console.log("Real Google FCM Token:", currentToken);
+          document.getElementById("tokenText").value = currentToken;
+          document.getElementById("tokenBox").style.display = "block";
+          statusBadge.style.background = "#e6f4ea";
+          statusBadge.style.color = "#137333";
+          statusBadge.innerText = "Token Active & Listening";
+          btn.innerText = "Token Generated!";
+        } else {
+          alert("No registration token available. Request permission to generate one.");
+          btn.disabled = false;
+          btn.innerText = "Try Again";
+        }
+      } catch (err) {
+        console.error("Error retrieving token: ", err);
+        alert("Error retrieving token: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "Try Again";
+        statusBadge.innerText = "Error";
+      }
+    }
+
+    function copyToken() {
+      const copyText = document.getElementById("tokenText");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(copyText.value);
+      const copyBtn = document.getElementById("copyBtn");
+      copyBtn.innerText = "Copied! ✅";
+      setTimeout(() => { copyBtn.innerText = "📋 Copy Token"; }, 2500);
+    }
+
+    // Listen for foreground messages when tab is open
+    messaging.onMessage((payload) => {
+      console.log('Message received in foreground: ', payload);
+      const alertDiv = document.getElementById("incomingAlert");
+      alertDiv.style.display = "block";
+      alertDiv.innerHTML = `<b>🔔 Live Notification Received from Backend:</b><br/>
+                            <strong>${payload.notification?.title || 'Notification'}</strong>: ${payload.notification?.body || ''}`;
+      
+      // Also trigger browser desktop notification
+      new Notification(payload.notification?.title || 'FFM Alert', {
+        body: payload.notification?.body || '',
+        icon: 'https://cdn-icons-png.flaticon.com/512/1827/1827392.png'
+      });
+    });
+  </script>
+</body>
+</html>
+

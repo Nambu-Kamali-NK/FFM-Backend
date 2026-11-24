@@ -1,0 +1,12 @@
+**/.git
+**/.vs
+**/bin
+**/obj
+*.backup
+*.dump
+*.sql
+identity-private.key
+*.key
+!identity-public.key
+!FFM.Workforce/FFM.Workforce.Api/identity-public.key
+.env
