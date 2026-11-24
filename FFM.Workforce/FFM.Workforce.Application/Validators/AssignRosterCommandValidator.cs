@@ -16,8 +16,8 @@ public class AssignRosterCommandValidator : AbstractValidator<AssignRosterComman
 
         RuleFor(x => x.RosterDate)
             .NotEmpty().WithMessage("RosterDate is required.")
-            .Must(d => d.Date >= DateTime.UtcNow.Date.AddDays(-1))
-            .WithMessage("RosterDate cannot be in the past.");
+            .Must(d => d.Date > DateTime.UtcNow.Date)
+            .WithMessage("Shift assignment or update is strictly restricted to upcoming days (tomorrow onwards). Present date (today) and past shifts cannot be modified.");
 
         RuleFor(x => x.Zone)
             .MaximumLength(100).WithMessage("Zone cannot exceed 100 characters.");

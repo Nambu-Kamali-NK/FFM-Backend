@@ -57,26 +57,62 @@ public class AssignRosterCommandHandler : IRequestHandler<AssignRosterCommand, R
             throw new InvalidOperationException("Cannot assign an inactive shift template.");
         }
 
-        // 5. Leave Conflict Guard (BR-8 / BR-9: Employee on leave cannot be rostered)
+        // 5. Shift Modification Guard: Cannot assign or modify shifts for today or past dates
         var targetDate = request.RosterDate.Date;
+        var today = DateTime.UtcNow.Date;
+        if (targetDate <= today)
+        {
+            throw new InvalidOperationException("Shifts for the present date (today) or past dates cannot be assigned or modified. Modifications are strictly restricted to upcoming days (tomorrow onwards).");
+        }
+
+        // 6. Leave Conflict Guard (BR-8 / BR-9: Employee on leave cannot be rostered)
         bool hasLeave = await _leaveRepository.HasOverlappingLeaveAsync(employee.Id, targetDate, targetDate);
         if (hasLeave)
         {
             throw new InvalidOperationException("Cannot assign roster: employee has an approved or pending leave on this date.");
         }
 
-        // 6. Duplicate / Overlapping Roster Guard (BR-5)
+        var actor = string.IsNullOrWhiteSpace(request.ActorRole) 
+            ? $"USER_{request.ActorUserId}" 
+            : $"USER_{request.ActorUserId} ({request.ActorRole})";
+
+        // 7. Update Existing Future Shift or Create New Assignment
+        var existingRoster = await _rosterRepository.GetByEmployeeAndDateAsync(employee.Id, targetDate, cancellationToken);
+        if (existingRoster != null)
+        {
+            // Update existing future assignment
+            existingRoster.UpdateShift(shift.Id, request.Zone, request.Notes, actor);
+            await _rosterRepository.SaveChangesAsync(cancellationToken);
+
+            return new RosterAssignmentDto
+            {
+                Id = existingRoster.Id,
+                EmployeeId = employee.Id,
+                EmployeeCode = employee.EmployeeCode,
+                EmployeeName = employee.Name,
+                ShiftId = shift.Id,
+                ShiftCode = shift.ShiftCode,
+                ShiftName = shift.Name,
+                StartTime = shift.StartTime,
+                EndTime = shift.EndTime,
+                ColorCode = shift.ColorCode,
+                RosterDate = existingRoster.RosterDate,
+                Zone = existingRoster.Zone,
+                Notes = existingRoster.Notes,
+                Status = existingRoster.Status.ToString(),
+                CreatedAt = existingRoster.CreatedAt,
+                CreatedBy = existingRoster.CreatedBy
+            };
+        }
+
+        // 8. Duplicate / Overlapping Roster Guard (BR-5)
         bool hasOverlapping = await _rosterRepository.HasOverlappingRosterAsync(employee.Id, targetDate, null, cancellationToken);
         if (hasOverlapping)
         {
             throw new InvalidOperationException("A roster assignment already exists for this employee on the specified date.");
         }
 
-        // 7. Persist assignment
-        var actor = string.IsNullOrWhiteSpace(request.ActorRole) 
-            ? $"USER_{request.ActorUserId}" 
-            : $"USER_{request.ActorUserId} ({request.ActorRole})";
-
+        // 9. Persist new future assignment
         var roster = new RosterAssignment(
             employee.Id,
             shift.Id,

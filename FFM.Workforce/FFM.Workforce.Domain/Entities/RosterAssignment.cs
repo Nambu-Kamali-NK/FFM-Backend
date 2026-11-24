@@ -56,6 +56,14 @@ public class RosterAssignment
         Status = RosterAssignmentStatus.CANCELLED;
     }
 
+    public void UpdateShift(int shiftId, string? zone, string? notes, string updatedBy)
+    {
+        if (shiftId <= 0) throw new ArgumentOutOfRangeException(nameof(shiftId), "ShiftId must be positive.");
+        ShiftId = shiftId;
+        Zone = zone?.Trim();
+        Notes = notes?.Trim();
+    }
+
     public void UpdateZoneAndNotes(string? zone, string? notes)
     {
         Zone = zone?.Trim();

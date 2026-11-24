@@ -75,4 +75,18 @@ public class AssignRosterCommandValidatorTests
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RosterDate);
     }
+
+    [Fact]
+    public void Validate_TodayRosterDate_HasValidationError()
+    {
+        var command = new AssignRosterCommand
+        {
+            EmployeeId = 10,
+            ShiftId = 1,
+            RosterDate = DateTime.UtcNow.Date
+        };
+
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(x => x.RosterDate);
+    }
 }

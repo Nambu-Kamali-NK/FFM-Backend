@@ -120,6 +120,13 @@ public class RostersController : ControllerBase
 
         if (assignment != null)
         {
+            if (assignment.RosterDate.Date <= DateTime.UtcNow.Date)
+            {
+                return BadRequest(ApiResponse<object>.Fail(
+                    "LOCKED_SHIFT",
+                    "Shifts for the present date (today) or past dates cannot be deleted or modified. Only future shifts can be modified."));
+            }
+
             dbContext.RosterAssignments.Remove(assignment);
             await dbContext.SaveChangesAsync(cancellationToken);
         }

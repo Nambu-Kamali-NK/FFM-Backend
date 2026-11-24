@@ -181,4 +181,60 @@ public class AssignRosterCommandHandlerTests
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(command, CancellationToken.None));
         Assert.Contains("already exists for this employee on the specified date", ex.Message);
     }
+
+    [Fact]
+    public async Task Handle_TodayOrPastDate_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var command = new AssignRosterCommand
+        {
+            EmployeeId = _activeEmployee.Id,
+            ShiftId = _morningShift.Id,
+            RosterDate = DateTime.UtcNow.Date, // Today
+            Zone = "Zone-A"
+        };
+
+        _employeeRepoMock.Setup(r => r.GetByIdAsync(_activeEmployee.Id)).ReturnsAsync(_activeEmployee);
+        _shiftRepoMock.Setup(r => r.GetShiftByIdAsync(_morningShift.Id, It.IsAny<CancellationToken>())).ReturnsAsync(_morningShift);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(command, CancellationToken.None));
+        Assert.Contains("present date (today) or past dates cannot be assigned or modified", ex.Message);
+    }
+
+    [Fact]
+    public async Task Handle_ExistingFutureShift_UpdatesShiftSuccessfully()
+    {
+        // Arrange: Future date with an existing assignment
+        var futureDate = DateTime.UtcNow.Date.AddDays(3);
+        var existing = new RosterAssignment(_activeEmployee.Id, 1, futureDate, "Old-Zone", "Old notes");
+        var eveningShift = new Shift(2, "MCT-EVEN", "Evening Field Shift", null, TimeSpan.FromHours(15), TimeSpan.FromHours(23), 15, false, false, "#D97706", true);
+
+        var command = new AssignRosterCommand
+        {
+            EmployeeId = _activeEmployee.Id,
+            ShiftId = eveningShift.Id,
+            RosterDate = futureDate,
+            Zone = "New-Zone-B",
+            Notes = "Updated instructions",
+            ActorUserId = 10,
+            ActorRole = "MANAGER"
+        };
+
+        _employeeRepoMock.Setup(r => r.GetByIdAsync(_activeEmployee.Id)).ReturnsAsync(_activeEmployee);
+        _shiftRepoMock.Setup(r => r.GetShiftByIdAsync(eveningShift.Id, It.IsAny<CancellationToken>())).ReturnsAsync(eveningShift);
+        _leaveRepoMock.Setup(r => r.HasOverlappingLeaveAsync(_activeEmployee.Id, futureDate.Date, futureDate.Date, null)).ReturnsAsync(false);
+        _rosterRepoMock.Setup(r => r.GetByEmployeeAndDateAsync(_activeEmployee.Id, futureDate.Date, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(eveningShift.Id, result.ShiftId);
+        Assert.Equal("New-Zone-B", result.Zone);
+        Assert.Equal("Updated instructions", result.Notes);
+        Assert.Equal(eveningShift.ShiftCode, result.ShiftCode);
+        _rosterRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
