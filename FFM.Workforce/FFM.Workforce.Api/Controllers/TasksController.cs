@@ -152,14 +152,37 @@ public class TasksController : ControllerBase
             return BadRequest(new { success = false, message = "Invalid TaskId." });
         }
 
+        if (string.IsNullOrWhiteSpace(request.Reason))
+        {
+            return BadRequest(new { success = false, message = "Cancellation justification reason is mandatory for audit trail." });
+        }
+
         var task = await _dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
         if (task == null)
         {
             return NotFound(new { success = false, message = "Task not found." });
         }
 
+        var currentStatus = task.Status?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        // Terminal & active on-site guards
+        if (currentStatus == "CHECKED_IN")
+        {
+            return BadRequest(new { success = false, message = "Cannot cancel task: Field technician has already checked in on-site. Work is currently active." });
+        }
+
+        if (currentStatus == "COMPLETED")
+        {
+            return BadRequest(new { success = false, message = "Cannot cancel task: Work order has already been completed." });
+        }
+
+        if (currentStatus == "CANCELLED")
+        {
+            return BadRequest(new { success = false, message = "Task is already cancelled." });
+        }
+
         task.Status = "CANCELLED";
-        task.CancellationReason = request.Reason;
+        task.CancellationReason = request.Reason.Trim();
         task.CancelledAt = DateTime.UtcNow;
         task.UpdatedAt = DateTime.UtcNow;
 
@@ -175,6 +198,188 @@ public class TasksController : ControllerBase
                 taskNumber = task.TaskNumber,
                 status = task.Status,
                 cancellationReason = task.CancellationReason
+            }
+        });
+    }
+
+    public record AssignTaskRequest(int TaskId, int EmployeeId);
+
+    [HttpPost("assign")]
+    public async Task<IActionResult> AssignTask([FromBody] AssignTaskRequest request, CancellationToken cancellationToken)
+    {
+        if (request == null || request.TaskId <= 0 || request.EmployeeId <= 0)
+        {
+            return BadRequest(new { success = false, message = "Valid TaskId and EmployeeId are required in request body." });
+        }
+
+        var task = await _dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
+        if (task == null)
+        {
+            return NotFound(new { success = false, message = $"Task with ID {request.TaskId} not found." });
+        }
+
+        var currentStatus = task.Status?.Trim().ToUpperInvariant() ?? string.Empty;
+        if (currentStatus == "COMPLETED" || currentStatus == "CANCELLED")
+        {
+            return BadRequest(new { success = false, message = $"Cannot assign a terminal {currentStatus} task." });
+        }
+
+        var employee = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Id == request.EmployeeId, cancellationToken);
+        if (employee == null)
+        {
+            return NotFound(new { success = false, message = $"Employee with ID {request.EmployeeId} not found." });
+        }
+
+        task.AssignedEmployeeId = employee.Id;
+        task.Status = "ASSIGNED";
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok(new
+        {
+            success = true,
+            message = $"Task {task.TaskNumber} successfully assigned to {employee.Name}.",
+            data = new
+            {
+                id = task.Id,
+                taskNumber = task.TaskNumber,
+                status = task.Status,
+                assignedEmployeeId = employee.Id,
+                assignedEmployeeName = employee.Name
+            }
+        });
+    }
+
+    public record UpdateTaskStatusRequest(int TaskId, string Status, string? Notes, double? Latitude, double? Longitude);
+
+    [HttpPost("status")]
+    public async Task<IActionResult> UpdateTaskStatus([FromBody] UpdateTaskStatusRequest request, CancellationToken cancellationToken)
+    {
+        if (request == null || request.TaskId <= 0 || string.IsNullOrWhiteSpace(request.Status))
+        {
+            return BadRequest(new { success = false, message = "TaskId and target Status are required." });
+        }
+
+        var task = await _dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
+        if (task == null)
+        {
+            return NotFound(new { success = false, message = "Task not found." });
+        }
+
+        var targetStatus = request.Status.Trim().ToUpperInvariant();
+        var currentStatus = task.Status?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        // Terminal state validation
+        if (currentStatus == "COMPLETED" || currentStatus == "CANCELLED")
+        {
+            return BadRequest(new { success = false, message = $"Cannot change status of a terminal {currentStatus} task." });
+        }
+
+        var validStatuses = new[] { "CREATED", "ASSIGNED", "EN_ROUTE", "CHECKED_IN", "COMPLETED", "CANCELLED" };
+        if (!validStatuses.Contains(targetStatus))
+        {
+            return BadRequest(new { success = false, message = $"Invalid target status '{targetStatus}'. Allowed: {string.Join(", ", validStatuses)}" });
+        }
+
+        task.Status = targetStatus;
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok(new
+        {
+            success = true,
+            message = $"Task {task.TaskNumber} status updated to {targetStatus}.",
+            data = new
+            {
+                id = task.Id,
+                taskNumber = task.TaskNumber,
+                status = task.Status,
+                updatedAt = task.UpdatedAt
+            }
+        });
+    }
+
+    public record CreateTaskRequest(
+        string Title,
+        string? Description,
+        string? Priority,
+        int? ClientSiteId,
+        int? AssignedEmployeeId,
+        DateTime? ScheduledStart,
+        DateTime? ScheduledEnd,
+        string? TaskType);
+
+    [HttpPost("create")]
+    [HttpPost]
+    public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request, CancellationToken cancellationToken)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest(new { success = false, message = "Task Title is mandatory." });
+        }
+
+        // Auto-generate task number: TSK-YYYYMM-XXXX
+        var currentYearMonth = DateTime.UtcNow.ToString("yyyyMM");
+        var taskCount = await _dbContext.Tasks.CountAsync(cancellationToken);
+        var taskNumber = $"TSK-{currentYearMonth}-{(taskCount + 1).ToString("D4")}";
+
+        // Validate assigned employee if supplied
+        if (request.AssignedEmployeeId.HasValue && request.AssignedEmployeeId.Value > 0)
+        {
+            var empExists = await _dbContext.Employees.AnyAsync(e => e.Id == request.AssignedEmployeeId.Value, cancellationToken);
+            if (!empExists)
+            {
+                return BadRequest(new { success = false, message = $"Assigned Employee ID {request.AssignedEmployeeId.Value} does not exist." });
+            }
+        }
+
+        // Validate site if supplied
+        if (request.ClientSiteId.HasValue && request.ClientSiteId.Value > 0)
+        {
+            var siteExists = await _dbContext.ClientSites.AnyAsync(s => s.Id == request.ClientSiteId.Value, cancellationToken);
+            if (!siteExists)
+            {
+                return BadRequest(new { success = false, message = $"Client Site ID {request.ClientSiteId.Value} does not exist." });
+            }
+        }
+
+        var initialStatus = request.AssignedEmployeeId.HasValue && request.AssignedEmployeeId.Value > 0 ? "ASSIGNED" : "CREATED";
+        var priority = string.IsNullOrWhiteSpace(request.Priority) ? "MEDIUM" : request.Priority.Trim().ToUpperInvariant();
+
+        var newTask = new FieldTaskEntity
+        {
+            TaskNumber = taskNumber,
+            Title = request.Title.Trim(),
+            Description = request.Description?.Trim(),
+            Priority = priority,
+            Status = initialStatus,
+            ClientSiteId = request.ClientSiteId,
+            AssignedEmployeeId = request.AssignedEmployeeId,
+            ScheduledStart = request.ScheduledStart ?? DateTime.UtcNow.AddHours(2),
+            ScheduledEnd = request.ScheduledEnd ?? DateTime.UtcNow.AddHours(4),
+            TaskType = request.TaskType ?? "INSPECTION",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.Tasks.Add(newTask);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return StatusCode(StatusCodes.Status201Created, new
+        {
+            success = true,
+            message = $"Municipal work order {newTask.TaskNumber} created successfully.",
+            data = new
+            {
+                id = newTask.Id,
+                taskNumber = newTask.TaskNumber,
+                title = newTask.Title,
+                status = newTask.Status,
+                priority = newTask.Priority,
+                scheduledStart = newTask.ScheduledStart,
+                scheduledEnd = newTask.ScheduledEnd
             }
         });
     }
