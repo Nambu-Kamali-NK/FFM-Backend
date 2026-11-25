@@ -14,7 +14,7 @@ namespace FFM.Workforce.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class AnalyticsController : ControllerBase
 {
     private readonly WorkforceDbContext _dbContext;
