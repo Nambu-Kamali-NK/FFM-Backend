@@ -13,7 +13,7 @@ namespace FFM.GPS.Tracking.Api.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    [Authorize]
+    [AllowAnonymous]
     public class GeofencesController : ControllerBase
     {
         private readonly IMediator _mediator;
