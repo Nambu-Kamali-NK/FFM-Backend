@@ -36,6 +36,7 @@ public class WorkforceDbContext : DbContext
     public DbSet<RosterAssignment> RosterAssignments => Set<RosterAssignment>();
     public DbSet<FieldTaskEntity> Tasks => Set<FieldTaskEntity>();
     public DbSet<ClientSiteEntity> ClientSites => Set<ClientSiteEntity>();
+    public DbSet<FFM.Identity.Access.Domain.Entities.UserDevice> UserDevices => Set<FFM.Identity.Access.Domain.Entities.UserDevice>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -400,6 +401,13 @@ public class WorkforceDbContext : DbContext
 
             entity.HasIndex(r => new { r.EmployeeId, r.RosterDate })
                 .HasDatabaseName("IX_RosterAssignments_Employee_RosterDate");
+        });
+
+        modelBuilder.Entity<FFM.Identity.Access.Domain.Entities.UserDevice>(entity =>
+        {
+            entity.ToTable("UserDevices");
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.DeviceUuid).IsRequired();
         });
     }
 }

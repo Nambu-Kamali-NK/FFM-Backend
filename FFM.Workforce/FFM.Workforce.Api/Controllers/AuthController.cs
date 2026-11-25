@@ -37,7 +37,7 @@ namespace FFM.Workforce.Api.Controllers
             _dbContext = dbContext;
         }
 
-        public record LoginRequest(string Username, string Password);
+        public record LoginRequest(string Username, string Password, string? DeviceId = null);
         public record MfaSetupResponse(string Secret, string QrCodeUri, string ManualEntryKey, string Issuer, string Account);
         public record MfaEnableRequest(string Secret, string VerificationCode);
         public record MfaVerifyRequest(string MfaChallengeId, string VerificationCode);
@@ -83,6 +83,74 @@ namespace FFM.Workforce.Api.Controllers
             if (!valid)
             {
                 return Unauthorized(new { success = false, message = "Invalid email address or password." });
+            }
+
+            // ================= DEVICE BINDING ENFORCEMENT =================
+            var deviceId = request.DeviceId?.Trim() ?? Request?.Headers["X-Device-Id"].FirstOrDefault()?.Trim();
+            var clientId = Request?.Headers["X-Client-Id"].FirstOrDefault()?.Trim().ToLowerInvariant() ?? "ffm-web";
+            var requiresBinding = clientId is "ffm-mobile" or "ffm-pwa" || !string.IsNullOrWhiteSpace(deviceId);
+
+            if (requiresBinding)
+            {
+                if (string.IsNullOrWhiteSpace(deviceId))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, new
+                    {
+                        success = false,
+                        deviceBindingError = true,
+                        message = "Mobile authentication requires a registered Device Identifier (X-Device-Id)."
+                    });
+                }
+
+                var devices = await _dbContext.UserDevices.Where(d => d.UserId == user.Id).ToListAsync();
+                if (devices.Count == 0)
+                {
+                    // Auto-bind first device as Active
+                    var newDevice = new UserDevice
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        DeviceUuid = deviceId,
+                        Status = DeviceStatus.Active,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        ApprovedAt = DateTimeOffset.UtcNow
+                    };
+                    _dbContext.UserDevices.Add(newDevice);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    var matchingDevice = devices.FirstOrDefault(d => d.DeviceUuid.Equals(deviceId, StringComparison.OrdinalIgnoreCase));
+                    if (matchingDevice == null)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, new
+                        {
+                            success = false,
+                            deviceBindingError = true,
+                            message = "Device mismatch: This account is locked to another authorized mobile device. Contact your administrator to authorize a new device."
+                        });
+                    }
+
+                    if (matchingDevice.Status == DeviceStatus.Pending)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, new
+                        {
+                            success = false,
+                            deviceBindingError = true,
+                            message = "Device authorization is pending administrator approval."
+                        });
+                    }
+
+                    if (matchingDevice.Status is DeviceStatus.Blocked or DeviceStatus.Revoked or DeviceStatus.Replaced)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, new
+                        {
+                            success = false,
+                            deviceBindingError = true,
+                            message = $"Device access has been {matchingDevice.Status}. Please contact your administrator."
+                        });
+                    }
+                }
             }
 
             // Check if MFA is required for this account
