@@ -20,12 +20,18 @@ namespace FFM.Identity.Access.Api.Controllers
         private readonly IAuthService _authService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IdentityDbContext _dbContext;
+        private readonly IOAuthService? _oauthService;
 
-        public AuthController(IAuthService authService, IRefreshTokenService refreshTokenService, IdentityDbContext dbContext)
+        public AuthController(
+            IAuthService authService,
+            IRefreshTokenService refreshTokenService,
+            IdentityDbContext dbContext,
+            IOAuthService? oauthService = null)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _refreshTokenService = refreshTokenService ?? throw new ArgumentNullException(nameof(refreshTokenService));
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _oauthService = oauthService;
         }
 
         /// <summary>
@@ -86,6 +92,146 @@ namespace FFM.Identity.Access.Api.Controllers
             }
 
             return Ok(new { success = true, message });
+        }
+
+        /// <summary>
+        /// Generates a new TOTP secret key and QR code URI for the authenticated user to set up Authenticator 2FA.
+        /// </summary>
+        [Authorize]
+        [HttpPost("mfa/setup")]
+        public async Task<ActionResult<MfaSetupResponse>> SetupMfa()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("userId")?.Value
+                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { success = false, message = "User identity could not be verified." });
+            }
+
+            var setup = await _authService.SetupMfaAsync(userId);
+            return Ok(setup);
+        }
+
+        /// <summary>
+        /// Enables 2-Factor Authentication by verifying the first code from the user's authenticator app.
+        /// </summary>
+        [Authorize]
+        [HttpPost("mfa/enable")]
+        public async Task<IActionResult> EnableMfa([FromBody] MfaEnableRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("userId")?.Value
+                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { success = false, message = "User identity could not be verified." });
+            }
+
+            var (success, message) = await _authService.EnableMfaAsync(userId, request);
+            if (!success)
+            {
+                return BadRequest(new { success = false, message });
+            }
+
+            return Ok(new { success = true, message });
+        }
+
+        /// <summary>
+        /// Disables 2-Factor Authentication after validating the user's account password.
+        /// </summary>
+        [Authorize]
+        [HttpPost("mfa/disable")]
+        public async Task<IActionResult> DisableMfa([FromBody] MfaDisableRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("userId")?.Value
+                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { success = false, message = "User identity could not be verified." });
+            }
+
+            var (success, message) = await _authService.DisableMfaAsync(userId, request);
+            if (!success)
+            {
+                return BadRequest(new { success = false, message });
+            }
+
+            return Ok(new { success = true, message });
+        }
+
+        /// <summary>
+        /// Returns the MFA security status for the authenticated user.
+        /// </summary>
+        [Authorize]
+        [HttpGet("mfa/status")]
+        public async Task<IActionResult> GetMfaStatus()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("userId")?.Value
+                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { success = false, message = "User identity could not be verified." });
+            }
+
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { success = false, message = "User not found." });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                mfaEnabled = user.MfaEnabled,
+                status = user.Status.ToString()
+            });
+        }
+
+        /// <summary>
+        /// Authenticates a user using OAuth 2.0 / OpenID Connect ID token from Google or Microsoft Azure AD.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("oauth/login")]
+        public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
+        {
+            if (_oauthService == null)
+            {
+                return StatusCode(501, new { success = false, message = "OAuth 2.0 service is not configured." });
+            }
+
+            var clientId = Request.Headers["X-Client-Id"].FirstOrDefault() ?? "ffm-web";
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var (success, response, message) = await _oauthService.AuthenticateOAuthUserAsync(request, clientId, ipAddress);
+            if (!success || response == null)
+            {
+                return BadRequest(new { success = false, message });
+            }
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Returns the supported OAuth 2.0 / OpenID Connect identity providers.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("oauth/providers")]
+        public IActionResult GetOAuthProviders()
+        {
+            if (_oauthService == null)
+            {
+                return Ok(new List<OAuthProviderDto>());
+            }
+
+            var providers = _oauthService.GetSupportedProviders();
+            return Ok(providers);
         }
 
         /// <summary>

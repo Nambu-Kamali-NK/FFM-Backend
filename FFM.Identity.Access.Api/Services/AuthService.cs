@@ -316,7 +316,113 @@ namespace FFM.Identity.Access.Api.Services
             return (true, "New verification code has been dispatched.");
         }
 
-        private async Task<LoginResponse> IssueTokensAsync(User user, string effectiveClientId, string? ipAddress = null)
+        public async Task<MfaSetupResponse> SetupMfaAsync(int userId)
+        {
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with ID {userId} not found.");
+            }
+
+            var secret = TotpService.GenerateSecret(20);
+            var qrCodeUri = TotpService.GetQrCodeUri("FFM", user.UsernameOrEmail, secret);
+
+            // Create temporary setup challenge in database
+            var otpHash = TokenHasher.ComputeHash(secret);
+            var challenge = new MfaChallenge
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                OtpHash = otpHash,
+                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15),
+                FailedAttempts = 0,
+                Verified = false
+            };
+            _dbContext.MfaChallenges.Add(challenge);
+            await _dbContext.SaveChangesAsync();
+
+            return new MfaSetupResponse
+            {
+                Secret = secret,
+                QrCodeUri = qrCodeUri,
+                ManualEntryKey = secret,
+                Issuer = "FFM Field Operations",
+                Account = user.UsernameOrEmail
+            };
+        }
+
+        public async Task<(bool Success, string Message)> EnableMfaAsync(int userId, MfaEnableRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Secret) || string.IsNullOrWhiteSpace(request.VerificationCode))
+            {
+                return (false, "Secret and verification code are required.");
+            }
+
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return (false, "User not found.");
+            }
+
+            // Verify TOTP code against the secret
+            var isValid = TotpService.VerifyTotpCode(request.Secret, request.VerificationCode);
+            if (!isValid)
+            {
+                return (false, "Invalid verification code. Please check your authenticator app and try again.");
+            }
+
+            user.MfaEnabled = true;
+
+            _dbContext.AuthAuditLogs.Add(new AuthAuditLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = AuditEventType.MfaChallengeVerified,
+                Timestamp = DateTimeOffset.UtcNow,
+                IpAddress = "internal",
+                AdditionalInfo = "MFA enabled via Authenticator TOTP"
+            });
+
+            await _dbContext.SaveChangesAsync();
+            return (true, "Two-factor authentication has been successfully enabled.");
+        }
+
+        public async Task<(bool Success, string Message)> DisableMfaAsync(int userId, MfaDisableRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return (false, "Current account password is required to disable two-factor authentication.");
+            }
+
+            var user = await _dbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return (false, "User not found.");
+            }
+
+            // Verify password for security
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                return (false, "Invalid password confirmation.");
+            }
+
+            user.MfaEnabled = false;
+
+            _dbContext.AuthAuditLogs.Add(new AuthAuditLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                EventType = AuditEventType.PasswordResetCompleted,
+                Timestamp = DateTimeOffset.UtcNow,
+                IpAddress = "internal",
+                AdditionalInfo = "MFA disabled"
+            });
+
+            await _dbContext.SaveChangesAsync();
+            return (true, "Two-factor authentication has been disabled.");
+        }
+
+        public async Task<LoginResponse> IssueTokensAsync(User user, string effectiveClientId, string? ipAddress = null)
         {
             // Create JWT access token
             var tokenHandler = new JwtSecurityTokenHandler();
