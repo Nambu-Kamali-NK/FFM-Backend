@@ -37,6 +37,9 @@ public class WorkforceDbContext : DbContext
     public DbSet<FieldTaskEntity> Tasks => Set<FieldTaskEntity>();
     public DbSet<ClientSiteEntity> ClientSites => Set<ClientSiteEntity>();
     public DbSet<FFM.Identity.Access.Domain.Entities.UserDevice> UserDevices => Set<FFM.Identity.Access.Domain.Entities.UserDevice>();
+    public DbSet<VisitEntity> Visits => Set<VisitEntity>();
+    public DbSet<VisitEvidenceEntity> VisitEvidences => Set<VisitEvidenceEntity>();
+    public DbSet<EvidenceTypeEntity> EvidenceTypes => Set<EvidenceTypeEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

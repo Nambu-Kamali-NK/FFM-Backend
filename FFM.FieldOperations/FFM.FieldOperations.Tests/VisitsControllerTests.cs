@@ -566,6 +566,152 @@ namespace FFM.FieldOperations.Tests
             Assert.Equal("direct-upload.jpg", apiResponse.Data!.FileName);
             Assert.Equal("visits/501", apiResponse.Data!.FolderPath);
         }
+
+        [Fact]
+        public void GenerateUploadUrls_ValidFileName_ReturnsPreSignedUrl()
+        {
+            // Arrange
+            var controller = CreateController();
+            _s3StorageServiceMock.Setup(s => s.GeneratePreSignedUploadUrl(It.IsAny<int>(), "site_evidence.jpg", "image/jpeg", null))
+                .Returns(new PreSignedUploadUrlItem
+                {
+                    FileName = "site_evidence.jpg",
+                    ContentType = "image/jpeg",
+                    UploadUrl = "https://s3.amazonaws.com/upload-test",
+                    FileUrl = "https://s3.amazonaws.com/file-test.jpg",
+                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(15),
+                    ExpiresInMinutes = 15
+                });
+
+            var request = new GenerateUploadUrlsRequest
+            {
+                VisitId = 501,
+                FileName = "site_evidence.jpg",
+                ContentType = "image/jpeg"
+            };
+
+            // Act
+            var result = controller.GenerateUploadUrls(request);
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<ApiResponse<GenerateUploadUrlsResponse>>(ok.Value);
+            Assert.True(response.Success);
+            Assert.NotEmpty(response.Data!.UploadUrls);
+            Assert.Equal("site_evidence.jpg", response.Data.UploadUrls[0].FileName);
+        }
+
+        [Fact]
+        public async Task SubmitCustomerSignature_ValidSignature_Returns201Created()
+        {
+            // Arrange
+            var controller = CreateController();
+            var expectedDto = new VisitEvidenceDto
+            {
+                Id = 888,
+                VisitId = 501,
+                EvidenceType = "SIGNATURE",
+                EvidenceTypeId = 3,
+                FileUrl = "https://ffm-field-evidence-prod.s3.ap-south-1.amazonaws.com/signatures/sig_test.png",
+                CapturedAt = DateTime.UtcNow,
+                Remarks = "Signed by Tariq Al-Balushi: Work approved"
+            };
+
+            _mediatorMock.Setup(m => m.Send(It.IsAny<AddVisitEvidenceCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDto);
+
+            var request = new SubmitCustomerSignatureRequest
+            {
+                VisitId = 501,
+                CustomerName = "Tariq Al-Balushi",
+                SignatureData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                CustomerRating = 5,
+                Remarks = "Work approved"
+            };
+
+            // Act
+            var result = await controller.SubmitCustomerSignature(request, CancellationToken.None);
+
+            // Assert
+            var created = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status201Created, created.StatusCode);
+            var response = Assert.IsType<ApiResponse<VisitEvidenceDto>>(created.Value);
+            Assert.True(response.Success);
+            Assert.Equal("SIGNATURE", response.Data!.EvidenceType);
+        }
+
+        [Fact]
+        public async Task CompleteTaskWithEvidence_ValidPayload_Returns200OK()
+        {
+            // Arrange
+            var controller = CreateController();
+            var expectedCheckOutDto = new VisitCheckOutResultDto
+            {
+                VisitId = 501,
+                TaskId = 101,
+                TaskNumber = "TSK-2026-001",
+                CheckInTime = DateTime.UtcNow.AddMinutes(-40),
+                CheckOutTime = DateTime.UtcNow,
+                DurationMinutes = 40m,
+                TaskStatus = "COMPLETED",
+                CompletionNotes = "AC compressor repaired and cooling restored to 21C.",
+                CustomerName = "Ahmed Al-Kharusi",
+                CustomerSignatureUrl = "https://s3.amazonaws.com/sig.png",
+                CustomerRating = 5
+            };
+
+            _mediatorMock.Setup(m => m.Send(It.IsAny<CheckOutVisitCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedCheckOutDto);
+
+            var request = new CompleteTaskWithEvidenceRequest
+            {
+                TaskId = 101,
+                VisitId = 501,
+                CompletionNotes = "AC compressor repaired and cooling restored to 21C.",
+                CustomerName = "Ahmed Al-Kharusi",
+                CustomerSignatureUrl = "https://s3.amazonaws.com/sig.png",
+                CustomerRating = 5,
+                Evidences = new List<TaskEvidenceItemDto>
+                {
+                    new()
+                    {
+                        EvidenceType = "PHOTO",
+                        FileName = "repaired_compressor.jpg",
+                        FileUrl = "https://s3.amazonaws.com/repaired.jpg",
+                        Remarks = "Compressor running at nominal current"
+                    }
+                }
+            };
+
+            // Act
+            var result = await controller.CompleteTaskWithEvidence(request, CancellationToken.None);
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<ApiResponse<VisitCheckOutResultDto>>(ok.Value);
+            Assert.True(response.Success);
+            Assert.Equal("COMPLETED", response.Data!.TaskStatus);
+            Assert.Equal(5, response.Data.CustomerRating);
+        }
+
+        [Fact]
+        public async Task CompleteTaskWithEvidence_MissingNotes_ReturnsBadRequest()
+        {
+            // Arrange
+            var controller = CreateController();
+            var request = new CompleteTaskWithEvidenceRequest
+            {
+                TaskId = 101,
+                CompletionNotes = "" // Empty notes
+            };
+
+            // Act
+            var result = await controller.CompleteTaskWithEvidence(request, CancellationToken.None);
+
+            // Assert
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(StatusCodes.Status400BadRequest, badRequest.StatusCode);
+        }
     }
 }
 

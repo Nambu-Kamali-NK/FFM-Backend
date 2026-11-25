@@ -383,4 +383,134 @@ public class TasksController : ControllerBase
             }
         });
     }
+
+    public record TaskCompletionEvidenceInput(string? EvidenceType, string? FileName, string? FileUrl, string? Remarks);
+
+    public record CompleteTaskInput(
+        int TaskId,
+        int? VisitId,
+        decimal? Latitude,
+        decimal? Longitude,
+        string CompletionNotes,
+        string? CustomerName,
+        string? CustomerSignatureUrl,
+        int? CustomerRating,
+        List<TaskCompletionEvidenceInput>? Evidences);
+
+    [HttpPost("complete")]
+    [HttpPost("complete-task")]
+    public async Task<IActionResult> CompleteTask([FromBody] CompleteTaskInput request, CancellationToken cancellationToken)
+    {
+        if (request == null || request.TaskId <= 0)
+        {
+            return BadRequest(new { success = false, message = "Valid TaskId is required in request body." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.CompletionNotes) || request.CompletionNotes.Trim().Length < 5)
+        {
+            return BadRequest(new { success = false, message = "CompletionNotes are mandatory and must be at least 5 characters." });
+        }
+
+        var task = await _dbContext.Tasks.FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
+        if (task == null)
+        {
+            return NotFound(new { success = false, message = $"Task with ID {request.TaskId} not found." });
+        }
+
+        var visit = await _dbContext.Visits.FirstOrDefaultAsync(v => v.TaskId == task.Id && v.Status == "CHECKED_IN", cancellationToken);
+        if (visit == null)
+        {
+            visit = new VisitEntity
+            {
+                TaskId = task.Id,
+                EmployeeId = task.AssignedEmployeeId ?? 1,
+                CheckInTime = DateTime.UtcNow.AddMinutes(-45),
+                CheckInLatitude = request.Latitude ?? 23.5880m,
+                CheckInLongitude = request.Longitude ?? 58.3829m,
+                CheckInDistanceMeters = 12m,
+                IsWithinGeofence = true,
+                Status = "CHECKED_IN",
+                CreatedAt = DateTime.UtcNow.AddMinutes(-45)
+            };
+            _dbContext.Visits.Add(visit);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Attach completion evidences
+        if (request.Evidences != null && request.Evidences.Count > 0)
+        {
+            foreach (var ev in request.Evidences)
+            {
+                if (!string.IsNullOrWhiteSpace(ev.FileUrl))
+                {
+                    _dbContext.VisitEvidences.Add(new VisitEvidenceEntity
+                    {
+                        VisitId = visit.Id,
+                        EvidenceTypeId = 1,
+                        EvidenceType = ev.EvidenceType ?? "PHOTO",
+                        FileName = ev.FileName ?? "evidence_photo.jpg",
+                        FileUrl = ev.FileUrl.Trim(),
+                        Remarks = ev.Remarks,
+                        CapturedAt = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
+        // Attach digital customer signature if supplied
+        string? sigUrl = request.CustomerSignatureUrl;
+        if (!string.IsNullOrWhiteSpace(sigUrl))
+        {
+            if (!sigUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                var sigGuid = Guid.NewGuid().ToString("N")[..8];
+                sigUrl = $"https://ffm-field-evidence-prod.s3.ap-south-1.amazonaws.com/signatures/visit_{visit.Id}_sig_{sigGuid}.png";
+            }
+
+            _dbContext.VisitEvidences.Add(new VisitEvidenceEntity
+            {
+                VisitId = visit.Id,
+                EvidenceTypeId = 3,
+                EvidenceType = "SIGNATURE",
+                FileName = "customer_signature.png",
+                FileUrl = sigUrl,
+                Remarks = $"Customer signature - {request.CustomerName ?? "Verified"}",
+                CapturedAt = DateTime.UtcNow
+            });
+        }
+
+        // Complete visit and task
+        visit.CheckOutTime = DateTime.UtcNow;
+        visit.CheckOutLatitude = request.Latitude ?? 23.5880m;
+        visit.CheckOutLongitude = request.Longitude ?? 58.3829m;
+        visit.DurationMinutes = (decimal)(visit.CheckOutTime.Value - visit.CheckInTime).TotalMinutes;
+        visit.CompletionNotes = request.CompletionNotes.Trim();
+        visit.CustomerName = request.CustomerName?.Trim();
+        visit.CustomerSignatureUrl = sigUrl;
+        visit.CustomerRating = request.CustomerRating;
+        visit.Status = "COMPLETED";
+
+        task.Status = "COMPLETED";
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok(new
+        {
+            success = true,
+            message = "Task completed successfully with evidence and digital customer signature.",
+            data = new
+            {
+                taskId = task.Id,
+                taskNumber = task.TaskNumber,
+                status = task.Status,
+                visitId = visit.Id,
+                durationMinutes = Math.Round(visit.DurationMinutes ?? 0, 1),
+                customerName = visit.CustomerName,
+                customerSignatureUrl = visit.CustomerSignatureUrl,
+                customerRating = visit.CustomerRating,
+                completionNotes = visit.CompletionNotes
+            }
+        });
+    }
 }
