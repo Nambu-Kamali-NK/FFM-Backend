@@ -170,6 +170,17 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IVisitRepository, VisitRepository>();
 builder.Services.AddScoped<IEvidenceTypeRepository, EvidenceTypeRepository>();
 builder.Services.AddScoped<IEvidenceFieldValidator, EvidenceFieldValidator>();
+
+// Push Notification Dispatcher HTTP Client (Connects to FFM.Notification.Api on port 5040 / Workforce on 5010)
+builder.Services.AddHttpClient<ITaskNotificationDispatcher, TaskNotificationDispatcher>(client =>
+{
+    var notifUrl = builder.Configuration["Services:NotificationApiUrl"]
+                   ?? builder.Configuration["Services:WorkforceApiUrl"]
+                   ?? Environment.GetEnvironmentVariable("NOTIFICATION_API_URL")
+                   ?? "http://localhost:5040";
+    client.BaseAddress = new Uri(notifUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 builder.Services.AddScoped<IS3StorageService>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();

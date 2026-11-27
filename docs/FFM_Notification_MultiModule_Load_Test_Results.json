@@ -1,6 +1,6 @@
 {
   "testSuite": "FFM Notification Service - Multi-Module High-Concurrency Load Test",
-  "executedAt": "2026-11-23T04:49:29.4795524Z",
+  "executedAt": "2026-11-25T08:01:39.2159477Z",
   "totalCombinedRequests": 2000,
   "totalCombinedSuccess": 2000,
   "overallSuccessRate": 100,
@@ -8,24 +8,24 @@
     "endpoint": "POST /api/v1/Notifications/devices/register",
     "requests": 1000,
     "concurrency": 50,
-    "durationSeconds": 0.71,
-    "throughputRps": 1410.1,
+    "durationSeconds": 1.22,
+    "throughputRps": 822,
     "success": 1000,
     "failed": 0,
-    "p50Ms": 25.81,
-    "p95Ms": 166.41,
-    "maxMs": 244.75
+    "p50Ms": 44.78,
+    "p95Ms": 237.21,
+    "maxMs": 427.52
   },
   "module2_templateRendering": {
     "endpoint": "POST /api/v1/Notifications/templates/update",
     "requests": 1000,
     "concurrency": 50,
-    "durationSeconds": 0.55,
-    "throughputRps": 1806.5,
+    "durationSeconds": 0.78,
+    "throughputRps": 1288.6,
     "success": 1000,
     "failed": 0,
-    "p50Ms": 27.39,
-    "p95Ms": 59.3,
-    "maxMs": 89.75
+    "p50Ms": 35.5,
+    "p95Ms": 104.23,
+    "maxMs": 132.67
   }
 }

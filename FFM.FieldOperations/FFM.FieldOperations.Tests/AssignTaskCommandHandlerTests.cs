@@ -239,5 +239,49 @@ namespace FFM.FieldOperations.Tests
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(command, CancellationToken.None));
             Assert.Contains("Cannot reassign a task that is in 'CANCELLED' status", ex.Message);
         }
+
+        [Fact]
+        public async Task AssignTask_WithNotificationDispatcher_DispatchesPushNotification()
+        {
+            // Arrange
+            var task = CreateTask(status: "CREATED", assignedEmployeeId: null);
+            var site = CreateActiveSite();
+            var notifDispatcherMock = new Mock<ITaskNotificationDispatcher>();
+
+            _taskRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(task);
+            _siteRepoMock.Setup(s => s.GetByIdAsync(1))
+                .ReturnsAsync(site);
+
+            var handler = new AssignTaskCommandHandler(
+                _taskRepoMock.Object,
+                _siteRepoMock.Object,
+                notifDispatcherMock.Object);
+
+            var command = new AssignTaskCommand
+            {
+                TaskId = 1,
+                AssignedEmployeeId = 10,
+                ActorUserId = 12
+            };
+
+            // Act
+            var result = await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(10, result.AssignedEmployeeId);
+            Assert.Equal("ASSIGNED", result.Status);
+
+            // Verify notification dispatch was triggered with the exact task details
+            notifDispatcherMock.Verify(d => d.DispatchTaskAssignmentNotificationAsync(
+                task.Id,
+                task.TaskNumber,
+                task.Title,
+                10,
+                site.Name,
+                task.Priority,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

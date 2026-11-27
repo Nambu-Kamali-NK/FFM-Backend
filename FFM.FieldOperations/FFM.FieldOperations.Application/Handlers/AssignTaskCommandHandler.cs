@@ -15,13 +15,16 @@ namespace FFM.FieldOperations.Application.Handlers
     {
         private readonly ITaskRepository _taskRepository;
         private readonly IClientSiteRepository _clientSiteRepository;
+        private readonly ITaskNotificationDispatcher? _notificationDispatcher;
 
         public AssignTaskCommandHandler(
             ITaskRepository taskRepository,
-            IClientSiteRepository clientSiteRepository)
+            IClientSiteRepository clientSiteRepository,
+            ITaskNotificationDispatcher? notificationDispatcher = null)
         {
             _taskRepository = taskRepository;
             _clientSiteRepository = clientSiteRepository;
+            _notificationDispatcher = notificationDispatcher;
         }
 
         public async Task<TaskDto> Handle(AssignTaskCommand request, CancellationToken cancellationToken)
@@ -53,7 +56,27 @@ namespace FFM.FieldOperations.Application.Handlers
             // 5. Ensure ClientSite navigation is resolved
             var site = task.ClientSite ?? await _clientSiteRepository.GetByIdAsync(task.ClientSiteId);
 
-            // 6. Map and Return DTO
+            // 6. Trigger Notification Dispatch (Non-blocking resilience)
+            if (_notificationDispatcher != null)
+            {
+                try
+                {
+                    await _notificationDispatcher.DispatchTaskAssignmentNotificationAsync(
+                        task.Id,
+                        task.TaskNumber,
+                        task.Title,
+                        task.AssignedEmployeeId ?? request.AssignedEmployeeId,
+                        site?.Name ?? "Municipal Ward",
+                        task.Priority,
+                        cancellationToken);
+                }
+                catch
+                {
+                    // Resilient: Core task assignment transaction succeeds even if notification endpoint is warming up
+                }
+            }
+
+            // 7. Map and Return DTO
             return new TaskDto
             {
                 Id = task.Id,

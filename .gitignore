@@ -62,3 +62,6 @@ scratch/
 build.log
 *.bin
 *.pdf
+
+# Reference project folders
+MM 1/
